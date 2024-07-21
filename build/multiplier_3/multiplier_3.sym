@@ -1,0 +1,10 @@
+1,1,1,main.out
+2,2,1,main.in[0]
+3,3,1,main.in[1]
+4,4,1,main.in[2]
+5,5,0,main.gate[0].out
+6,-1,0,main.gate[0].in[0]
+7,-1,0,main.gate[0].in[1]
+8,-1,0,main.gate[1].out
+9,-1,0,main.gate[1].in[0]
+10,-1,0,main.gate[1].in[1]
