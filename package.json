@@ -1,8 +1,9 @@
 {
-  "description": "AES",
+  "description": "AES circom",
   "scripts": {
     "start": "npx ts-node ./src/index.ts",
-    "test": "npx mocha"
+    "test": "npx mocha",
+    "compile:test": "npx circomkit compile fibonacci_11 && npx circomkit prove fibonacci_11 default && npx circomkit verify fibonacci_11 default"
   },
   "dependencies": {
     "circomkit": "^0.0.22",
