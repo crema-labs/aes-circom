@@ -1,5 +1,5 @@
 {
-  "description": "Circomkit examples",
+  "description": "AES",
   "scripts": {
     "start": "npx ts-node ./src/index.ts",
     "test": "npx mocha"
