@@ -8,16 +8,14 @@ include "../node_modules/circomlib/circuits/gates.circom";
 //nk is the number of keys which can be 4, 6, 8 
 //nr is the number of rounds which can be 10, 12, 14
 template KeyExpansion(nk, nr) {
-    signal input key[nk * nk];
+    signal input key[nk * 4];
     component words[nk];
     signal output keyExpanded[4 * (nr + 1)][4];
 
-    // for the 0th round
-    // i is the column
     for(var i = 0; i < nk; i++) {
-        words[i] = BytesToWords(nk);
-        for (var j = 0; j < nk; j++) {
-            words[i].bytes[j] <== key[(nk * j) + i];
+        words[i] = BytesToWords(4);
+        for (var j = 0; j < 4; j++) {
+            words[i].bytes[j] <== key[(4 * i) + j];
         }
         keyExpanded[i] <== words[i].bytes;
     }
@@ -58,7 +56,6 @@ template KeyExpansion(nk, nr) {
 
         keyExpanded[i] <== newWord[i - nk].out;
     }
-    
 }   
 
 template BytesToWords(n) {
