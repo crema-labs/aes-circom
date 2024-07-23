@@ -1,21 +1,21 @@
 import { WitnessTester } from "circomkit";
 import { circomkit } from "./common";
 
-describe("SubBytes", () => {
+describe("SBox128", () => {
   let circuit: WitnessTester<["in"], ["out"]>;
 
-  describe("vanilla", () => {
+  describe("SubBox", () => {
     before(async () => {
       circuit = await circomkit.WitnessTester(`SubBytes`, {
         file: "sbox128",
         template: "Sbox128",
-        params: [],
       });
       console.log("#constraints:", await circuit.getConstraintCount());
     });
 
     it("should compute correctly", async () => {
       await circuit.expectPass({ in: 0x53 }, { out: 0xed });
+      await circuit.expectPass({ in: 0x00 }, { out: 0x63 });
     });
   });
 });

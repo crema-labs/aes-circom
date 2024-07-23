@@ -1,10 +1,17 @@
 pragma circom 2.0.0;
 
-include "../node_modules/circomlib/circuits/comparators.circom";
+include "circomlib/circuits/comparators.circom";
+
+function splitBy2(n) {   
+    return [n >> 4 , n & 0x0f];
+}
 
 template Sbox128() {
     signal input in;
     signal output out;
+
+    var split[2] = splitBy2(in);
+    var index = split[0] * 16 + split[1];
 
     var sbox[16 * 16] = [
         0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76,
@@ -24,20 +31,6 @@ template Sbox128() {
         0xe1, 0xf8, 0x98, 0x11, 0x69, 0xd9, 0x8e, 0x94, 0x9b, 0x1e, 0x87, 0xe9, 0xce, 0x55, 0x28, 0xdf,
         0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16
     ];
-
-    component isEqual[256];
-    signal sum[256];
-
-    for (var i = 0; i < 256; i++) {
-        isEqual[i] = IsEqual();
-        isEqual[i].in[0] <== in;
-        isEqual[i].in[1] <== i;
-    }
-
-    sum[0] <== isEqual[0].out * sbox[0];
-    for (var i = 1; i < 256; i++) {
-        sum[i] <== sum[i-1] + isEqual[i].out * sbox[i];
-    }
-
-    out <== sum[16 * 16 - 1];
+    
+    out <-- sbox[index];
 }
