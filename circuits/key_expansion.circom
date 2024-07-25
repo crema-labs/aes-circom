@@ -19,29 +19,29 @@ template KeyExpansion(nk, nr) {
     
     component nextRound[nr];
     for (var round = 1; round <= nr; round++) {
-        nextRound[round - 1] = NextRound();  
+        nextRound[round - 1] = NextRound(nk);  
 
-        for (var i = 0; i < 4; i++) {
+        for (var i = 0; i < nk; i++) {
             for (var j = 0; j < 4; j++) {
-                nextRound[round - 1].key[i][j] <== keyExpanded[(round * 4) + i - 4][j];
+                nextRound[round - 1].key[i][j] <== keyExpanded[(round * nk) + i - nk][j];
             }
         }
 
         nextRound[round - 1].round <== round;
 
-        for (var i = 0; i < 4; i++) {
+        for (var i = 0; i < nk; i++) {
             for (var j = 0; j < 4; j++) {
-                keyExpanded[(round * 4) + i][j] <== nextRound[round - 1].nextKey[i][j];
+                log(round, round * nk + i);
+                keyExpanded[(round * nk) + i][j] <== nextRound[round - 1].nextKey[i][j];
             }
         }
     }
 }   
 
-//TODO: next round should take nk as params and NextRound should be a generic
-template NextRound(){
-    signal input key[4][4]; 
+template NextRound(nk){
+    signal input key[nk][4]; 
     signal input round;
-    signal output nextKey[4][4];
+    signal output nextKey[nk][4];
 
     component rotateWord = RotateWord(1);
     for (var i = 0; i < 4; i++) {
