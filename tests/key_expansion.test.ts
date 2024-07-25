@@ -58,7 +58,7 @@ describe("KeyExpansion", () => {
     ];
     await circuit.expectPass({ key }, { keyExpanded });
   });
-  it.only("should compute correctly for aes 192", async () => {
+  it("should compute correctly for aes 192", async () => {
     const circuit: WitnessTester<["key"], ["keyExpanded"]> = await circomkit.WitnessTester(`SubBytes`, {
       file: "key_expansion",
       template: "KeyExpansion",

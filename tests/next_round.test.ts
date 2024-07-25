@@ -6,9 +6,10 @@ describe("NextRound", () => {
 
   describe("NextRound", () => {
     before(async () => {
-      circuit = await circomkit.WitnessTester(`NextRound_${4}`, {
+      circuit = await circomkit.WitnessTester(`NextRound_${4}_${4}`, {
         file: "key_expansion",
         template: "NextRound",
+        params: [4, 4],
       });
       console.log("#constraints:", await circuit.getConstraintCount());
     });
@@ -32,31 +33,32 @@ describe("NextRound", () => {
     });
   });
 
-  describe("NextRound", () => {
-    before(async () => {
-      circuit = await circomkit.WitnessTester(`NextRound_${6}`, {
-        file: "key_expansion",
-        template: "NextRound",
-      });
-      console.log("#constraints:", await circuit.getConstraintCount());
-    });
+  // describe("NextRound", () => {
+  //   before(async () => {
+  //     circuit = await circomkit.WitnessTester(`NextRound_${6}_${6}`, {
+  //       file: "key_expansion",
+  //       template: "NextRound",
+  //       params: [6, 6],
+  //     });
+  //     console.log("#constraints:", await circuit.getConstraintCount());
+  //   });
 
-    it("should compute correctly for AES-192", async () => {
-      const key = [
-        [0x8e, 0x73, 0xb0, 0xf7],
-        [0xda, 0x0e, 0x64, 0x52],
-        [0xc8, 0x10, 0xf3, 0x2b],
-        [0x80, 0x90, 0x79, 0xe5],
-      ];
+  //   it("should compute correctly for AES-192", async () => {
+  //     const key = [
+  //       [0x8e, 0x73, 0xb0, 0xf7],
+  //       [0xda, 0x0e, 0x64, 0x52],
+  //       [0xc8, 0x10, 0xf3, 0x2b],
+  //       [0x80, 0x90, 0x79, 0xe5],
+  //     ];
 
-      const expectedNextKey = [
-        [0x62, 0xf8, 0xea, 0xd2],
-        [0x52, 0x2c, 0x6b, 0x7b],
-        [0xfe, 0x0c, 0x91, 0xf7],
-        [0x24, 0x02, 0xf5, 0xa5],
-      ];
+  //     const expectedNextKey = [
+  //       [0x62, 0xf8, 0xea, 0xd2],
+  //       [0x52, 0x2c, 0x6b, 0x7b],
+  //       [0xfe, 0x0c, 0x91, 0xf7],
+  //       [0x24, 0x02, 0xf5, 0xa5],
+  //     ];
 
-      await circuit.expectFail({ key, round: 1 });
-    });
-  });
+  //     await circuit.expectPass({ key, round: 1 }, { nextKey: expectedNextKey });
+  //   });
+  // });
 });

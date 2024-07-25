@@ -9,7 +9,12 @@ include "../node_modules/circomlib/circuits/gates.circom";
 //nr is the number of rounds which can be 10, 12, 14
 template KeyExpansion(nk, nr) {
     signal input key[nk * 4];
-    signal output keyExpanded[4 * (nr + 1)][4];
+    
+    var totalWords = (4 * (nr + 1));
+    var effectiveRounds = (totalWords % nk == 0 ? totalWords - nk : totalWords) \ nk;
+    var leftoverWords = totalWords - (effectiveRounds * nk);
+    
+    signal output keyExpanded[totalWords][4];
 
     for (var i = 0; i < nk; i++) {
         for (var j = 0; j < 4; j++) {
@@ -17,9 +22,11 @@ template KeyExpansion(nk, nr) {
         }
     }
     
-    component nextRound[nr];
-    for (var round = 1; round <= nr; round++) {
-        nextRound[round - 1] = NextRound(nk);  
+    component nextRound[effectiveRounds];
+    
+    for (var round = 1; round <= effectiveRounds; round++) {
+        var outputWordLen = round == effectiveRounds ? leftoverWords : nk;
+        nextRound[round - 1] = NextRound(nk, outputWordLen);
 
         for (var i = 0; i < nk; i++) {
             for (var j = 0; j < 4; j++) {
@@ -29,23 +36,23 @@ template KeyExpansion(nk, nr) {
 
         nextRound[round - 1].round <== round;
 
-        for (var i = 0; i < nk; i++) {
+        for (var i = 0; i < outputWordLen; i++) {
             for (var j = 0; j < 4; j++) {
-                log(round, round * nk + i);
                 keyExpanded[(round * nk) + i][j] <== nextRound[round - 1].nextKey[i][j];
             }
         }
     }
-}   
+}
 
-template NextRound(nk){
+//nk, output
+template NextRound(nk, o){
     signal input key[nk][4]; 
     signal input round;
-    signal output nextKey[nk][4];
+    signal output nextKey[o][4];
 
     component rotateWord = RotateWord(1);
     for (var i = 0; i < 4; i++) {
-        rotateWord.bytes[i] <== key[3][i];
+        rotateWord.bytes[i] <== key[nk - 1][i];
     }
     
     component substituteWord = SubstituteWord();
@@ -54,12 +61,12 @@ template NextRound(nk){
     component rcon = RCon();
     rcon.round <== round; 
 
-    component xorWord[4 + 1];
+    component xorWord[o + 1];
     xorWord[0] = XorWord();
     xorWord[0].bytes1 <== substituteWord.substituted;
     xorWord[0].bytes2 <== rcon.out;
 
-    for (var i = 0; i < 4; i++) {
+    for (var i = 0; i < o; i++) {
         xorWord[i+1] = XorWord();
         if (i == 0) {
             xorWord[i+1].bytes1 <== xorWord[0].out;
@@ -73,6 +80,7 @@ template NextRound(nk){
         }
     }
 }
+
 
 template BytesToWords(n) {
     assert(n % 4 == 0);
