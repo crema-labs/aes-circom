@@ -6,13 +6,14 @@ include "../node_modules/circomlib/circuits/bitify.circom";
 include "../node_modules/circomlib/circuits/gates.circom";
 
 //nk is the number of keys which can be 4, 6, 8 
-//nr is the number of rounds which can be 10, 12, 14
-template KeyExpansion(nk, nr) {
+template KeyExpansion(nk) {
+    assert(nk == 4 || nk == 6 || nk == 8 );
+    var nr = Rounds(nk);
+    
     signal input key[nk * 4];
     
     var totalWords = (4 * (nr + 1));
-    var effectiveRounds = (totalWords % nk == 0 ? totalWords - nk : totalWords) \ nk;
-    var leftoverWords = totalWords - (effectiveRounds * nk);
+    var effectiveRounds = nk == 4 ? 10 : totalWords\nk;
 
     signal output keyExpanded[totalWords][4];
 
@@ -25,7 +26,7 @@ template KeyExpansion(nk, nr) {
     component nextRound[effectiveRounds];
     
     for (var round = 1; round <= effectiveRounds; round++) {
-        var outputWordLen = round == effectiveRounds ? leftoverWords : nk;
+        var outputWordLen = round == effectiveRounds ? 4 : nk; 
         nextRound[round - 1] = NextRound(nk, outputWordLen);
 
         for (var i = 0; i < nk; i++) {
@@ -90,9 +91,9 @@ template NextRound(nk, o){
 template BytesToWords(n) {
     assert(n % 4 == 0);
     signal input bytes[n];
-    signal output words[n / 4][n];
+    signal output words[n \ 4][n];
 
-    for (var i = 0; i < n / 4; i++) {
+    for (var i = 0; i < n \ 4; i++) {
         for(var j = 0; j < 4; j++) {
             words[i][j] <== bytes[i * 4 + j];
         }
@@ -136,6 +137,8 @@ template RCon() {
     signal input round;
     signal output out[4];
 
+    assert(round > 0 && round <= 10);
+
     var rcon[10][4] = [
         [0x01, 0x00, 0x00, 0x00],
         [0x02, 0x00, 0x00, 0x00],
@@ -149,23 +152,7 @@ template RCon() {
         [0x36, 0x00, 0x00, 0x00]
     ];
 
-    component isEqual[10];
-    signal sum[10][4];
-
-    for (var i = 0; i < 10; i++) {
-        isEqual[i] = IsEqual();
-        isEqual[i].in[0] <== round - 1;
-        isEqual[i].in[1] <== i;
-    }
-
-    sum[0] <== [isEqual[0].out * rcon[0][0], isEqual[1].out * rcon[0][1], isEqual[2].out * rcon[0][2], isEqual[3].out * rcon[0][3]];
-    for (var i = 1; i < 10; i++) {
-        for (var j = 0; j < 4; j++) {
-            sum[i][j] <== sum[i - 1][j] + isEqual[i].out * rcon[i][j];
-        }
-    }
-
-    out <== sum[9];
+    out <-- rcon[round-1];
 }
 
 template XorWord() {
@@ -204,5 +191,15 @@ template WordSelector() {
 
     for (var i = 0; i < 4; i++) {
         out[i] <== condition * (bytes1[i] - bytes2[i]) + bytes2[i];
+    }
+}
+
+function Rounds (nk) {
+    if (nk == 4) {
+       return 10;
+    } else if (nk == 6) {
+        return 12;
+    } else {
+        return 14;
     }
 }
