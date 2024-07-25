@@ -13,7 +13,7 @@ template KeyExpansion(nk, nr) {
     var totalWords = (4 * (nr + 1));
     var effectiveRounds = (totalWords % nk == 0 ? totalWords - nk : totalWords) \ nk;
     var leftoverWords = totalWords - (effectiveRounds * nk);
-    
+
     signal output keyExpanded[totalWords][4];
 
     for (var i = 0; i < nk; i++) {
@@ -55,21 +55,26 @@ template NextRound(nk, o){
         rotateWord.bytes[i] <== key[nk - 1][i];
     }
     
-    component substituteWord = SubstituteWord();
-    substituteWord.bytes <== rotateWord.rotated;
+    component substituteWord[2];
+    substituteWord[0] = SubstituteWord();
+    substituteWord[0].bytes <== rotateWord.rotated;
 
     component rcon = RCon();
     rcon.round <== round; 
 
     component xorWord[o + 1];
     xorWord[0] = XorWord();
-    xorWord[0].bytes1 <== substituteWord.substituted;
+    xorWord[0].bytes1 <== substituteWord[0].substituted;
     xorWord[0].bytes2 <== rcon.out;
 
     for (var i = 0; i < o; i++) {
         xorWord[i+1] = XorWord();
         if (i == 0) {
             xorWord[i+1].bytes1 <== xorWord[0].out;
+        } else if(nk == 8 && i == 4) {
+            substituteWord[1] = SubstituteWord();
+            substituteWord[1].bytes <== nextKey[i - 1];
+            xorWord[i+1].bytes1 <== substituteWord[1].substituted;
         } else {
             xorWord[i+1].bytes1 <== nextKey[i-1];
         }
