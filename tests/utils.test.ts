@@ -143,3 +143,45 @@ describe("XTIMES", () => {
     await circuit.expectPass({ in: [1, 1, 1, 0, 1, 0, 1, 0] }, { out: [0, 1, 1, 1, 1, 1, 1, 1] });
   });
 });
+
+describe("XTimes2 with XTIMES", () => {
+  let circuit: WitnessTester<["in"], ["out"]>;
+  it("should perform 2 times with XTERMS", async () => {
+    circuit = await circomkit.WitnessTester(`XTIMES`, {
+      file: "cipher",
+      template: "XTIMES",
+      params: [0x2],
+    });
+    console.log("@XTimes2 #constraints:", await circuit.getConstraintCount());
+
+    // 0x57 . 2 = 0xae
+    await circuit.expectPass({ in: [1, 1, 1, 0, 1, 0, 1, 0] }, { out: [0, 1, 1, 1, 0, 1, 0, 1] });
+    // 0x54 . 2 = 0xa8
+    await circuit.expectPass({ in: [0, 0, 1, 0, 1, 0, 1, 0] }, { out: [0, 0, 0, 1, 0, 1, 0, 1] });
+    // 0xae . 2 = 0x47
+    await circuit.expectPass({ in: [0, 1, 1, 1, 0, 1, 0, 1] }, { out: [1, 1, 1, 0, 0, 0, 1, 0] });
+    // 0x47 . 2 = 0x8e
+    await circuit.expectPass({ in: [1, 1, 1, 0, 0, 0, 1, 0] }, { out: [0, 1, 1, 1, 0, 0, 0, 1] });
+  });
+});
+
+describe("XTimes1 with XTIMES", () => {
+  let circuit: WitnessTester<["in"], ["out"]>;
+  it("should perform 1 times with XTERMS", async () => {
+    circuit = await circomkit.WitnessTester(`XTIMES`, {
+      file: "cipher",
+      template: "XTIMES",
+      params: [0x1],
+    });
+    console.log("@XTimes2 #constraints:", await circuit.getConstraintCount());
+
+    // 0x57 . 2 = 0xae
+    await circuit.expectPass({ in: [1, 1, 1, 0, 1, 0, 1, 0] }, { out: [1, 1, 1, 0, 1, 0, 1, 0] });
+    // 0x54 . 2 = 0xa8
+    await circuit.expectPass({ in: [0, 0, 1, 0, 1, 0, 1, 0] }, { out: [0, 0, 1, 0, 1, 0, 1, 0] });
+    // 0xae . 2 = 0x47
+    await circuit.expectPass({ in: [0, 1, 1, 1, 0, 1, 0, 1] }, { out: [0, 1, 1, 1, 0, 1, 0, 1] });
+    // 0x47 . 2 = 0x8e
+    await circuit.expectPass({ in: [1, 1, 1, 0, 1, 0, 1, 0] }, { out: [1, 1, 1, 0, 1, 0, 1, 0] });
+  });
+});
