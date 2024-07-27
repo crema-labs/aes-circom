@@ -185,6 +185,7 @@ describe("XTimes1 with XTimes", () => {
     await circuit.expectPass({ in: [1, 1, 1, 0, 1, 0, 1, 0] }, { out: [1, 1, 1, 0, 1, 0, 1, 0] });
   });
 });
+
 describe("MixColumns", () => {
   it("s0 should compute correctly", async () => {
     let circuit: WitnessTester<["in"], ["out"]>;
@@ -257,5 +258,134 @@ describe("MixColumns", () => {
     ];
 
     await circuit.expectPass({ state }, { out });
+  });
+});
+
+describe("AddRoundKey", () => {
+  let circuit: WitnessTester<["state", "roundKey"], ["newState"]>;
+  it("should perform AddRoundKey", async () => {
+    circuit = await circomkit.WitnessTester(`AddRoundKey`, {
+      file: "cipher",
+      template: "AddRoundKey",
+      params: [4],
+    });
+    console.log("@AddRoundKey #constraints:", await circuit.getConstraintCount());
+
+    // 0x57 . 2 = 0xae
+    await circuit.expectPass(
+      {
+        state: [
+          [4, 224, 72, 40],
+          [102, 203, 248, 6],
+          [129, 25, 211, 38],
+          [229, 154, 122, 76],
+        ],
+        roundKey: [[160, 136, 35, 42, 250, 84, 163, 108, 254, 44, 57, 118, 23, 177, 57, 5]],
+      },
+      {
+        newState: [
+          [164, 104, 107, 2],
+          [156, 159, 91, 106],
+          [127, 53, 234, 80],
+          [242, 43, 67, 73],
+        ],
+      }
+    );
+  });
+});
+
+describe("SubBlock", () => {
+  let circuit: WitnessTester<["state"], ["newState"]>;
+  it("should perform SubBlock", async () => {
+    circuit = await circomkit.WitnessTester(`SubBlock`, {
+      file: "cipher",
+      template: "SubBlock",
+      params: [4],
+    });
+    console.log("@SubBlock #constraints:", await circuit.getConstraintCount());
+
+    // 0x57 . 2 = 0xae
+    await circuit.expectPass(
+      {
+        state: [
+          [25, 160, 154, 233],
+          [61, 244, 198, 248],
+          [227, 226, 141, 72],
+          [190, 43, 42, 8],
+        ],
+      },
+      {
+        newState: [
+          [212, 224, 184, 30],
+          [39, 191, 180, 65],
+          [17, 152, 93, 82],
+          [174, 241, 229, 48],
+        ],
+      }
+    );
+  });
+});
+
+describe("ShiftRows", () => {
+  let circuit: WitnessTester<["state"], ["newState"]>;
+  it("should perform ShiftRows", async () => {
+    circuit = await circomkit.WitnessTester(`ShiftRows`, {
+      file: "cipher",
+      template: "ShiftRows",
+      params: [4],
+    });
+    console.log("@ShiftRows #constraints:", await circuit.getConstraintCount());
+
+    // 0x57 . 2 = 0xae
+    await circuit.expectPass(
+      {
+        state: [
+          [212, 224, 184, 30],
+          [39, 191, 180, 65],
+          [17, 152, 93, 82],
+          [174, 241, 229, 48],
+        ],
+      },
+      {
+        newState: [
+          [212, 224, 184, 30],
+          [191, 180, 65, 39],
+          [93, 82, 17, 152],
+          [48, 174, 241, 229],
+        ],
+      }
+    );
+  });
+});
+
+describe("Cipher", () => {
+  let circuit: WitnessTester<["state"], ["newState"]>;
+  it("should perform Cipher", async () => {
+    circuit = await circomkit.WitnessTester(`Cipher`, {
+      file: "cipher",
+      template: "Cipher",
+      params: [4],
+    });
+    console.log("@ShiftRows #constraints:", await circuit.getConstraintCount());
+
+    // 0x57 . 2 = 0xae
+    await circuit.expectPass(
+      {
+        state: [
+          [0x32, 0x88, 0x31, 0xe0],
+          [0x43, 0x5a, 0x31, 0x37],
+          [0xf6, 0x30, 0x98, 0x07],
+          [0xa8, 0x8d, 0xa2, 0x34],
+        ],
+      },
+      {
+        newState: [
+          [0x39, 0x02, 0xdc, 0x19],
+          [0x25, 0xdc, 0x11, 0x6a],
+          [0x84, 0x09, 0x85, 0x0b],
+          [0x1d, 0xfb, 0x97, 0x32],
+        ],
+      }
+    );
   });
 });
