@@ -35,19 +35,24 @@ template SubBlock(nk){
 }
 
 template ShiftRows(nk){
-        signal input state[nk][4];
-        signal output newState[nk][4];
+    signal input state[4][nk];
+    signal output newState[4][nk];
+    var shiftRows[3][4] = [
+        [0, 1, 2, 3], 
+        [0, 1, 2, 3],
+        [0, 1, 3, 4]
+    ];
 
-        component shiftWord[4];
+    component shiftWord[4];
 
-        for (var i = 0; i < nk; i++) {
-                shiftWord[i] = RotateWord(i);
-                shiftWord[i].bytes <== state[i];
-                newState[i] <== shiftWord[i].rotated;
-        }
+    for (var i = 0; i < 4; i++) {
+        shiftWord[i] = Rotate(shiftRows[(nk \ 2) - 2][i], nk);
+        shiftWord[i].bytes <== state[i];
+        newState[i] <== shiftWord[i].rotated;
+    }
 }
 
-template MixColumns(){
+template MixColumns(nk){
     signal input state[4][nk];
     signal output out[4][nk];
 
