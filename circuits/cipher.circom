@@ -1,8 +1,51 @@
 pragma circom  2.0.0;
 
+include "./key_expansion.circom";
 include "../node_modules/circomlib/circuits/comparators.circom";
 include "../node_modules/circomlib/circuits/bitify.circom";
 include "../node_modules/circomlib/circuits/gates.circom";
+
+template AddRoundKey(nk){
+        signal input state[nk][4];
+        signal input roundKey[nk*4];
+        signal output newState[nk][4];
+
+        component xorbyte[nk][4];
+
+        for (var i = 0; i < nk; i++) {
+                for (var j = 0; j < 4; j++) {
+                        xorbyte[i][j] = XorByte();
+                        xorbyte[i][j].a <== state[i][j];
+                        xorbyte[i][j].b <== roundKey[4*i+j];
+                        newState[i][j] <== xorbyte[i][j].out;
+                }
+        }
+}
+
+template SubBlock(nk){
+        signal input state[nk][4];
+        signal output newState[nk][4];
+        component sbox[nk];
+
+        for (var i = 0; i < 4; i++) {
+                sbox[i] = SubstituteWord();
+                sbox[i].bytes <== state[i];
+                newState[i] <== sbox[i].substituted;
+        }
+}
+
+template ShiftRows(nk){
+        signal input state[nk][4];
+        signal output newState[nk][4];
+
+        component shiftWord[4];
+
+        for (var i = 0; i < nk; i++) {
+                shiftWord[i] = RotateWord(i);
+                shiftWord[i].bytes <== state[i];
+                newState[i] <== shiftWord[i].rotated;
+        }
+}
 
 template MixColumns(){
     signal input state[4][4];
@@ -50,15 +93,15 @@ template S0(){
     component mul2 = XTimes(3);
     mul2.in <== num2bits[1].out;
 
-    xor[0] = XorByte();
+    xor[0] = XorBits();
     xor[0].a <== mul.out;
     xor[0].b <== mul2.out;
 
-    xor[1] = XorByte();
+    xor[1] = XorBits();
     xor[1].a <== xor[0].out;
     xor[1].b <== num2bits[2].out;
 
-    xor[2] = XorByte();
+    xor[2] = XorBits();
     xor[2].a <== xor[1].out;
     xor[2].b <== num2bits[3].out;
 
@@ -87,15 +130,15 @@ template S1(){
     component mul2 = XTimes(3);
     mul2.in <== num2bits[2].out;
 
-    xor[0] = XorByte();
+    xor[0] = XorBits();
     xor[0].a <== num2bits[0].out;
     xor[0].b <== mul.out;
 
-    xor[1] = XorByte();
+    xor[1] = XorBits();
     xor[1].a <== xor[0].out;
     xor[1].b <== mul2.out;
 
-    xor[2] = XorByte();
+    xor[2] = XorBits();
     xor[2].a <== xor[1].out;
     xor[2].b <== num2bits[3].out;
 
@@ -118,7 +161,7 @@ template S2() {
         num2bits[i].in <== in[i];
     }
 
-    xor[0] = XorByte();
+    xor[0] = XorBits();
     xor[0].a <== num2bits[0].out;
     xor[0].b <== num2bits[1].out;
 
@@ -128,11 +171,11 @@ template S2() {
     component mul = XTimes(3);
     mul.in <== num2bits[3].out;
 
-    xor[1] = XorByte();
+    xor[1] = XorBits();
     xor[1].a <== xor[0].out;
     xor[1].b <== mul2.out;
 
-    xor[2] = XorByte();
+    xor[2] = XorBits();
     xor[2].a <== xor[1].out;
     xor[2].b <== mul.out;
 
@@ -158,18 +201,18 @@ template S3() {
     component mul3 = XTimes(3);
     mul3.in <== num2bits[0].out;
 
-    xor[0] = XorByte();
+    xor[0] = XorBits();
     xor[0].a <== mul3.out;
     xor[0].b <== num2bits[1].out;
 
-    xor[1] = XorByte();
+    xor[1] = XorBits();
     xor[1].a <== xor[0].out;
     xor[1].b <== num2bits[2].out;
 
     component mul2 = XTimes2();
     mul2.in <== num2bits[3].out;
 
-    xor[2] = XorByte();
+    xor[2] = XorBits();
     xor[2].a <== mul2.out;
     xor[2].b <== xor[1].out;
 
@@ -203,6 +246,27 @@ template XTimes2(){
 }
 
 template XorByte(){
+        signal input a;
+        signal input b;
+        signal output out;
+
+        component abits = Num2Bits(8);
+        abits.in <== a;
+
+        component bbits = Num2Bits(8);
+        bbits.in <== b;
+
+        component XorBits = XorBits();
+        XorBits.a <== abits.out;
+        XorBits.b <== bbits.out;
+
+        component num = Bits2Num(8);
+        num.in <== XorBits.out;
+
+        out <== num.out;
+}
+
+template XorBits(){
         signal input a[8];
         signal input b[8];
         signal output out[8];
@@ -247,7 +311,7 @@ template XTimes(n){
                 mul[i].a <== bits.out[i];
                 mul[i].b <== XTimes2[i-1].out;
 
-                xor[i] = XorByte();
+                xor[i] = XorBits();
                 xor[i].a <== inter[i-1];
                 xor[i].b <== mul[i].c;
                 inter[i] <== xor[i].out;
@@ -266,3 +330,66 @@ template MulByte(){
         }
 }
        
+// template Cipher(nk){
+//         assert(nk == 4 || nk == 6 || nk == 8 );
+//         signal input block[nk][4];
+//         signal input cipher[nk][nk];
+
+//         var nr = Rounds(nk);
+
+//         signal input key[nk * 4];
+
+//         component keyExpansion = KeyExpansion(nk);
+//         keyExpanded.key <== key;
+
+//         component addRoundKey[nr+1];
+//         component subBytes[nr];
+
+//         signal interBlock[nr][nk][4];
+
+
+//         addRoundKey[0] = AddRoundKey(nk);
+//         addRoundKey[0].state <== block;
+//         for (var i = 0; i < nk; i++) {
+//                 for (var j = 0; j < 4; j++) {
+//                         addRoundKey[0].roundKey[4*i+j] <== keyExpanded.keyExpanded[i][j];
+//                 }
+//         }
+//         interBlock[0] <== addRoundKey[0].out;
+//         for (var i = 1; i < nr; i++) {
+//                 subBytes[i-1] = SubBlock(nk);
+//                 subBytes[i-1].state <== interBlock[i-1];
+
+//                 shiftRows[i-1] = ShiftRows(nk);
+//                 shiftRows[i-1].state <== subBytes[i-1].newState;
+
+//                 mixColumns[i-1] = MixColumns(nk);
+//                 mixColumns[i-1].state <== shiftRows[i-1].newState;
+
+//                 addRoundKey[i] = AddRoundKey(nk);
+//                 addRoundKey[i].state <== mixColumns[i-1].newState;
+//                 for (var j = 0; j < nk; j++) {
+//                         for (var k = 0; k < 4; k++) {
+//                                 addRoundKey[i].roundKey[4*j+k] <== keyExpanded.keyExpanded[4*i+j][k];
+//                         }
+//                 }
+
+//                 interBlock[i] <== addRoundKey[i].out;
+//         }
+
+//         subBytes[nr-1] = SubBlock(nk);
+//         subBytes[nr-1].state <== interBlock[nr-1];
+
+//         shiftRows[nr-1] = ShiftRows(nk);
+//         shiftRows[nr-1].state <== subBytes[nr-1].newState;
+
+//         addRoundKey[nr] = AddRoundKey(nk);
+//         addRoundKey[nr].state <== shiftRows[nr-1].newState;
+//         for (var i = 0; i < nk; i++) {
+//                 for (var j = 0; j < 4; j++) {
+//                         addRoundKey[nr].roundKey[4*i+j] <== keyExpanded.keyExpanded[4*nr+i][j];
+//                 }
+//         }
+
+//         cipher <== addRoundKey[nr].out;
+// }
