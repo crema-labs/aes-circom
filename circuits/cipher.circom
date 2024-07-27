@@ -7,7 +7,7 @@ include "../node_modules/circomlib/circuits/gates.circom";
 template MIXCOLUMNS(){
         signal input state[4][4];
         signal output newState[4][4];
-        component xtimes[4];    
+        component XTimes[4];    
         var mixConstant[4][4] = [
                 [0x02, 0x03 , 0x01, 0x01],
                 [0x01, 0x02 , 0x03, 0x01],
@@ -31,7 +31,7 @@ template S0(){
         element[0] = XTimes2();
         element[0].in <== num2bits[0].out;
 
-        element[1] = XTIMES(3);
+        element[1] = XTimes(3);
         element[1].in <== num2bits[1].out;
 
         element[2] =  num2bits[2].out;
@@ -72,7 +72,7 @@ template S2() {
     mul[0] = XTimes2();
     mul[0].in <== num2bits[2];
 
-    mul[1] = XTIMES(3);
+    mul[1] = XTimes(3);
     mul[1].in <== num2bits[3].out;
 
     xor[1] = XorByte();
@@ -103,7 +103,7 @@ template S3() {
         num2bits[i].in <== in[i];
     }
 
-    mul[0] = XTIMES(3);
+    mul[0] = XTimes(3);
     mul[0].in <== num2bits[0];
 
     xor[0] = XorByte();
@@ -164,21 +164,21 @@ template XorByte(){
         }
 }
 
-template XTIMES(n){
+template XTimes(n){
         signal input in[8];
         signal output out[8];
 
         component bits = Num2Bits(8);
         bits.in <== n;
 
-        component xtimes2[7];
+        component XTimes2[7];
 
-        xtimes2[0] = XTimes2();
-        xtimes2[0].in <== in;
+        XTimes2[0] = XTimes2();
+        XTimes2[0].in <== in;
 
         for (var i = 1; i < 7; i++) {
-                xtimes2[i] = XTimes2();
-                xtimes2[i].in <== xtimes2[i-1].out;
+                XTimes2[i] = XTimes2();
+                XTimes2[i].in <== XTimes2[i-1].out;
         }
 
         component xor[8];
@@ -193,7 +193,7 @@ template XTIMES(n){
         for (var i = 1; i < 8; i++) {
                 mul[i] = MulByte();
                 mul[i].a <== bits.out[i];
-                mul[i].b <== xtimes2[i-1].out;
+                mul[i].b <== XTimes2[i-1].out;
 
                 xor[i] = XorByte();
                 xor[i].a <== inter[i-1];
