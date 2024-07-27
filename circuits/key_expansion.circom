@@ -51,7 +51,7 @@ template NextRound(nk, o){
     signal input round;
     signal output nextKey[o][4];
 
-    component rotateWord = RotateWord(1);
+    component rotateWord = Rotate(1, 4);
     for (var i = 0; i < 4; i++) {
         rotateWord.bytes[i] <== key[nk - 1][i];
     }
@@ -100,23 +100,17 @@ template BytesToWords(n) {
     }
 }
 
-template RotateWord(rotation) {
-    assert(rotation < 4);
-    signal input bytes[4];
-    signal output rotated[4];
+template Rotate(rotation, length) {
+    assert(rotation < length);
+    signal input bytes[length];
+    signal output rotated[length];
 
-    signal copy[rotation];
-
-    for(var i = 0; i < rotation; i++) {
-        copy[i] <== bytes[i];
-    }
-
-    for(var i = 0; i < 4 - rotation; i++) {
+    for(var i = 0; i < length - rotation; i++) {
         rotated[i] <== bytes[i + rotation];
     }
 
-    for(var i = 4 - rotation; i < 4; i++) {
-        rotated[i] <== copy[i - 4 + rotation];
+    for(var i = length - rotation; i < length; i++) {
+        rotated[i] <== bytes[i - length + rotation];
     }
 }
 

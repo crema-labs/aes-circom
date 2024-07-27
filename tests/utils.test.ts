@@ -20,16 +20,14 @@ describe("AES Key Expansion Components", () => {
 
   describe("RotateWord", () => {
     let circuit: WitnessTester<["bytes"], ["rotated"]>;
-    before(async () => {
-      circuit = await circomkit.WitnessTester(`RotateWord`, {
-        file: "key_expansion",
-        template: "RotateWord",
-        params: [1],
-      });
-      console.log("RotateWord #constraints:", await circuit.getConstraintCount());
-    });
 
     it("should rotate correctly", async () => {
+      circuit = await circomkit.WitnessTester(`Rotate`, {
+        file: "key_expansion",
+        template: "Rotate",
+        params: [1, 4],
+      });
+      console.log("RotateWord #constraints:", await circuit.getConstraintCount());
       await circuit.expectPass({ bytes: [0x01, 0x12, 0x02, 0x30] }, { rotated: [0x12, 0x02, 0x30, 0x01] });
     });
   });
@@ -240,7 +238,7 @@ describe("MixColumns", () => {
     circuit = await circomkit.WitnessTester(`MixColumns`, {
       file: "cipher",
       template: "MixColumns",
-      params: [],
+      params: [4],
     });
     console.log("@MixColumns #constraints:", await circuit.getConstraintCount());
     const state = [

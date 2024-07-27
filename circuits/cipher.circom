@@ -6,20 +6,20 @@ include "../node_modules/circomlib/circuits/bitify.circom";
 include "../node_modules/circomlib/circuits/gates.circom";
 
 template AddRoundKey(nk){
-        signal input state[nk][4];
-        signal input roundKey[nk*4];
-        signal output newState[nk][4];
+    signal input state[nk][4];
+    signal input roundKey[nk*4];
+    signal output newState[nk][4];
 
-        component xorbyte[nk][4];
+    component xorbyte[nk][4];
 
-        for (var i = 0; i < nk; i++) {
-                for (var j = 0; j < 4; j++) {
-                        xorbyte[i][j] = XorByte();
-                        xorbyte[i][j].a <== state[i][j];
-                        xorbyte[i][j].b <== roundKey[4*i+j];
-                        newState[i][j] <== xorbyte[i][j].out;
-                }
+    for (var i = 0; i < nk; i++) {
+        for (var j = 0; j < 4; j++) {
+            xorbyte[i][j] = XorByte();
+            xorbyte[i][j].a <== state[i][j];
+            xorbyte[i][j].b <== roundKey[4*i+j];
+            newState[i][j] <== xorbyte[i][j].out;
         }
+    }
 }
 
 template SubBlock(nk){
@@ -48,15 +48,15 @@ template ShiftRows(nk){
 }
 
 template MixColumns(){
-    signal input state[4][4];
-    signal output out[4][4];
+    signal input state[4][nk];
+    signal output out[4][nk];
 
-    component s0[4];
-    component s1[4];
-    component s2[4];
-    component s3[4];
+    component s0[nk];
+    component s1[nk];
+    component s2[nk];
+    component s3[nk];
 
-    for (var i = 0; i < 4; i++) {
+    for (var i = 0; i < nk; i++) {
         s0[i] = S0();
         s1[i] = S1();
         s2[i] = S2();
@@ -76,6 +76,7 @@ template MixColumns(){
     }
 }
 
+//can make these generic but computation increases when multiplying by 1 (even though it won't be necessary)
 template S0(){
     signal input in[4];
     signal output out;
@@ -225,24 +226,24 @@ template S3() {
 }
 
 template XTimes2(){
-        signal input in[8];
-        signal output out[8];
+    signal input in[8];
+    signal output out[8];
 
-        component xtimeConstant = Num2Bits(8);
-        xtimeConstant.in <== 0x1b;
+    component xtimeConstant = Num2Bits(8);
+    xtimeConstant.in <== 0x1b;
 
-        component xor[7];
+    component xor[7];
 
-        component isZero = IsZero();
-        isZero.in <== in[7];
+    component isZero = IsZero();
+    isZero.in <== in[7];
 
-        out[0] <== 1-isZero.out;
-        for (var i = 0; i < 7; i++) {
-                xor[i] = XOR();
-                xor[i].a <== in[i];
-                xor[i].b <== xtimeConstant.out[i+1] * (1-isZero.out);
-                out[i+1] <== xor[i].out;
-        }
+    out[0] <== 1-isZero.out;
+    for (var i = 0; i < 7; i++) {
+        xor[i] = XOR();
+        xor[i].a <== in[i];
+        xor[i].b <== xtimeConstant.out[i+1] * (1-isZero.out);
+        out[i+1] <== xor[i].out;
+    }
 }
 
 template XorByte(){
@@ -271,45 +272,45 @@ template XorBits(){
         signal input b[8];
         signal output out[8];
 
-        component xor[8];
-        for (var i = 0; i < 8; i++) {
-                xor[i] = XOR();
-                xor[i].a <== a[i];
-                xor[i].b <== b[i];
-                out[i] <== xor[i].out;
-        }
+    component xor[8];
+    for (var i = 0; i < 8; i++) {
+        xor[i] = XOR();
+        xor[i].a <== a[i];
+        xor[i].b <== b[i];
+        out[i] <== xor[i].out;
+    }
 }
 
 template XTimes(n){
-        signal input in[8];
-        signal output out[8];
+    signal input in[8];
+    signal output out[8];
 
-        component bits = Num2Bits(8);
-        bits.in <== n;
+    component bits = Num2Bits(8);
+    bits.in <== n;
 
-        component XTimes2[7];
+    component XTimes2[7];
 
-        XTimes2[0] = XTimes2();
-        XTimes2[0].in <== in;
+    XTimes2[0] = XTimes2();
+    XTimes2[0].in <== in;
 
-        for (var i = 1; i < 7; i++) {
-                XTimes2[i] = XTimes2();
-                XTimes2[i].in <== XTimes2[i-1].out;
-        }
+    for (var i = 1; i < 7; i++) {
+            XTimes2[i] = XTimes2();
+            XTimes2[i].in <== XTimes2[i-1].out;
+    }
 
-        component xor[8];
-        component mul[8];
-        signal inter[8][8];
+    component xor[8];
+    component mul[8];
+    signal inter[8][8];
 
-        mul[0] = MulByte();
-        mul[0].a <== bits.out[0];
-        mul[0].b <== in;
-        inter[0] <== mul[0].c;
+    mul[0] = MulByte();
+    mul[0].a <== bits.out[0];
+    mul[0].b <== in;
+    inter[0] <== mul[0].c;
 
-        for (var i = 1; i < 8; i++) {
-                mul[i] = MulByte();
-                mul[i].a <== bits.out[i];
-                mul[i].b <== XTimes2[i-1].out;
+    for (var i = 1; i < 8; i++) {
+        mul[i] = MulByte();
+        mul[i].a <== bits.out[i];
+        mul[i].b <== XTimes2[i-1].out;
 
                 xor[i] = XorBits();
                 xor[i].a <== inter[i-1];
@@ -317,17 +318,17 @@ template XTimes(n){
                 inter[i] <== xor[i].out;
         }
 
-        out <== inter[7];
+    out <== inter[7];
 }
 
 template MulByte(){
-        signal input a;
-        signal input b[8];
-        signal output c[8];
+    signal input a;
+    signal input b[8];
+    signal output c[8];
 
-        for (var i = 0; i < 8; i++) {
-                c[i] <== a * b[i];
-        }
+    for (var i = 0; i < 8; i++) {
+        c[i] <== a * b[i];
+    }
 }
        
 // template Cipher(nk){
