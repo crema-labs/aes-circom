@@ -58,7 +58,7 @@ template S2() {
     signal output out;
     signal num2bits[4];
     signal xor[3];
-    signal muls[2];
+    signal mul[2];
 
     for (var i = 0; i < 4; i++) {
         num2bits[i] = Num2Bits(8);
@@ -66,8 +66,8 @@ template S2() {
     }
 
     xor[0] = XorByte();
-    xor[0].a <== num2Bits[0].out;
-    xor[0].b <== num2Bits[1].out;
+    xor[0].a <== num2bits[0].out;
+    xor[0].b <== num2bits[1].out;
 
     mul[0] = XTimes2();
     mul[0].in <== num2bits[2];
@@ -77,11 +77,11 @@ template S2() {
 
     xor[1] = XorByte();
     xor[1].a <== xor[0].out;
-    xor[1].b <== num2Bits[1].out;
+    xor[1].b <== num2bits[1].out;
 
     xor[2] = XorByte();
     xor[2].a <== xor[1].out;
-    xor[2].b <== num2Bits[1].out;
+    xor[2].b <== num2bits[1].out;
 
     component b2n = Bits2Num(8);
     for (var i = 0; i < 8; i++) {
@@ -96,23 +96,23 @@ template S3() {
     signal output out;
     signal num2bits[4];
     signal xor[3];
-    signal muls[2];
+    signal mul[2];
 
     for (var i = 0; i < 4; i++) {
         num2bits[i] = Num2Bits(8);
         num2bits[i].in <== in[i];
     }
 
-    mul[0] = XTimes(3);
+    mul[0] = XTIMES(3);
     mul[0].in <== num2bits[0];
 
     xor[0] = XorByte();
     xor[0].a <== mul[0].out;
-    xor[0].b <== num2Bits[1].out;
+    xor[0].b <== num2bits[1].out;
 
     xor[1] = XorByte();
     xor[1].a <== xor[0].out;
-    xor[1].b <== num2Bits[2].out;
+    xor[1].b <== num2bits[2].out;
 
     mul[1] = XTimes2();
     mul[1].in <== num2bits[3].out;
