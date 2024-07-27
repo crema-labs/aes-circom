@@ -4,16 +4,33 @@ include "../node_modules/circomlib/circuits/comparators.circom";
 include "../node_modules/circomlib/circuits/bitify.circom";
 include "../node_modules/circomlib/circuits/gates.circom";
 
-template MIXCOLUMNS(){
-        signal input state[4][4];
-        signal output newState[4][4];
-        component XTimes[4];    
-        var mixConstant[4][4] = [
-                [0x02, 0x03 , 0x01, 0x01],
-                [0x01, 0x02 , 0x03, 0x01],
-                [0x01, 0x01 , 0x02, 0x03],
-                [0x03, 0x01 , 0x01, 0x02]
-        ];
+template MixColumns(){
+    signal input state[4][4];
+    signal output out[4][4];
+
+    component s0[4];
+    component s1[4];
+    component s2[4];
+    component s3[4];
+
+    for (var i = 0; i < 4; i++) {
+        s0[i] = S0();
+        s1[i] = S1();
+        s2[i] = S2();
+        s3[i] = S3();
+
+        for(var j = 0; j < 4; j++) {
+            s0[i].in[j] <== state[j][i];
+            s1[i].in[j] <== state[j][i];
+            s2[i].in[j] <== state[j][i];
+            s3[i].in[j] <== state[j][i];
+        }
+
+        out[0][i] <== s0[i].out;
+        out[1][i] <== s1[i].out;
+        out[2][i] <== s2[i].out;
+        out[3][i] <== s3[i].out;
+    }
 }
 
 template S0(){
@@ -53,7 +70,6 @@ template S0(){
     out <== b2n.out;
 }
 
-
 template S1(){
     signal input in[4];
     signal output out;
@@ -64,7 +80,6 @@ template S1(){
         num2bits[i] = Num2Bits(8);
         num2bits[i].in <== in[i];
     }
-
 
     component mul = XTimes(2);
     mul.in <== num2bits[1].out;

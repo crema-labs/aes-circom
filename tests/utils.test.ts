@@ -184,54 +184,78 @@ describe("XTimes1 with XTimes", () => {
     // 0x47 . 2 = 0x8e
     await circuit.expectPass({ in: [1, 1, 1, 0, 1, 0, 1, 0] }, { out: [1, 1, 1, 0, 1, 0, 1, 0] });
   });
-
-  describe.only("MixColumns", () => {
-    it("s0 should compute correctly", async () => {
-      let circuit: WitnessTester<["in"], ["out"]>;
-      circuit = await circomkit.WitnessTester(`s0`, {
-        file: "cipher",
-        template: "S0",
-        params: [],
-      });
-      console.log("@S0 #constraints:", await circuit.getConstraintCount());
-
-      await circuit.expectPass({ in: [0xd4, 0xbf, 0x5d, 0x30] }, { out: 0x04 });
+});
+describe("MixColumns", () => {
+  it("s0 should compute correctly", async () => {
+    let circuit: WitnessTester<["in"], ["out"]>;
+    circuit = await circomkit.WitnessTester(`s0`, {
+      file: "cipher",
+      template: "S0",
+      params: [],
     });
+    console.log("@S0 #constraints:", await circuit.getConstraintCount());
 
-    it("s1 should compute correctly", async () => {
-      let circuit: WitnessTester<["in"], ["out"]>;
-      circuit = await circomkit.WitnessTester(`s1`, {
-        file: "cipher",
-        template: "S1",
-        params: [],
-      });
-      console.log("@S1 #constraints:", await circuit.getConstraintCount());
+    await circuit.expectPass({ in: [0xd4, 0xbf, 0x5d, 0x30] }, { out: 0x04 });
+  });
 
-      await circuit.expectPass({ in: [0xd4, 0xbf, 0x5d, 0x30] }, { out: 0x66 });
+  it("s1 should compute correctly", async () => {
+    let circuit: WitnessTester<["in"], ["out"]>;
+    circuit = await circomkit.WitnessTester(`s1`, {
+      file: "cipher",
+      template: "S1",
+      params: [],
     });
+    console.log("@S1 #constraints:", await circuit.getConstraintCount());
 
-    it("s2 should compute correctly", async () => {
-      let circuit: WitnessTester<["in"], ["out"]>;
-      circuit = await circomkit.WitnessTester(`s2`, {
-        file: "cipher",
-        template: "S2",
-        params: [],
-      });
-      console.log("@S2 #constraints:", await circuit.getConstraintCount());
+    await circuit.expectPass({ in: [0xd4, 0xbf, 0x5d, 0x30] }, { out: 0x66 });
+  });
 
-      await circuit.expectPass({ in: [0xd4, 0xbf, 0x5d, 0x30] }, { out: 0x81 });
+  it("s2 should compute correctly", async () => {
+    let circuit: WitnessTester<["in"], ["out"]>;
+    circuit = await circomkit.WitnessTester(`s2`, {
+      file: "cipher",
+      template: "S2",
+      params: [],
     });
+    console.log("@S2 #constraints:", await circuit.getConstraintCount());
 
-    it("s3 should compute correctly", async () => {
-      let circuit: WitnessTester<["in"], ["out"]>;
-      circuit = await circomkit.WitnessTester(`s3`, {
-        file: "cipher",
-        template: "S3",
-        params: [],
-      });
-      console.log("@S3 #constraints:", await circuit.getConstraintCount());
+    await circuit.expectPass({ in: [0xd4, 0xbf, 0x5d, 0x30] }, { out: 0x81 });
+  });
 
-      await circuit.expectPass({ in: [0xd4, 0xbf, 0x5d, 0x30] }, { out: 0xe5 });
+  it("s3 should compute correctly", async () => {
+    let circuit: WitnessTester<["in"], ["out"]>;
+    circuit = await circomkit.WitnessTester(`s3`, {
+      file: "cipher",
+      template: "S3",
+      params: [],
     });
+    console.log("@S3 #constraints:", await circuit.getConstraintCount());
+
+    await circuit.expectPass({ in: [0xd4, 0xbf, 0x5d, 0x30] }, { out: 0xe5 });
+  });
+
+  it.only("should compute correctly", async () => {
+    let circuit: WitnessTester<["state"], ["out"]>;
+    circuit = await circomkit.WitnessTester(`MixColumns`, {
+      file: "cipher",
+      template: "MixColumns",
+      params: [],
+    });
+    console.log("@MixColumns #constraints:", await circuit.getConstraintCount());
+    const state = [
+      [0xd4, 0xe0, 0xb8, 0x1e],
+      [0xbf, 0xb4, 0x41, 0x27],
+      [0x5d, 0x52, 0x11, 0x98],
+      [0x30, 0xae, 0xf1, 0xe5],
+    ];
+
+    const out = [
+      [0x04, 0xe0, 0x48, 0x28],
+      [0x66, 0xcb, 0xf8, 0x06],
+      [0x81, 0x19, 0xd3, 0x26],
+      [0xe5, 0x9a, 0x7a, 0x4c],
+    ];
+
+    await circuit.expectPass({ state }, { out });
   });
 });
