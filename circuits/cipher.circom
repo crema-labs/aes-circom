@@ -5,9 +5,52 @@ include "../node_modules/circomlib/circuits/bitify.circom";
 include "../node_modules/circomlib/circuits/gates.circom";
 
 template MIXCOLUMNS(){
-    signal input state[4][4];
-    signal output newState[4][4];
+        signal input state[4][4];
+        signal output newState[4][4];
+        component xtimes[4];    
+        var mixConstant[4][4] = [
+                [0x02, 0x03 , 0x01, 0x01],
+                [0x01, 0x02 , 0x03, 0x01],
+                [0x01, 0x01 , 0x02, 0x03],
+                [0x03, 0x01 , 0x01, 0x02]
+        ];
+}
 
+template S0(){
+        signal input in[4];
+        signal output out;
+        signal num2bits[4];
+        signal xor[3];
+        signal element[4];
+
+        for (var i = 0; i < 4; i++) {
+                num2bits[i] = Num2Bits(8);
+                num2bits[i].in <== in[i];
+        }
+
+        element[0] = XTimes2();
+        element[0].in <== num2bits[0].out;
+
+        element[1] = XTIMES(3);
+        element[1].in <== num2bits[1].out;
+
+        element[2] =  num2bits[2].out;
+        element[3] =  num2bits[3].out;
+
+        // XOR
+        xor[0] = XorByte();
+        xor[0].a <== element[0].out;
+        xor[0].b <== element[1].out;
+
+        xor[1] = XorByte();
+        xor[1].a <== xor[0].out;
+        xor[1].b <== element[2];
+
+        xor[2] = XorByte();
+        xor[2].a <== xor[1].out;
+        xor[2].b <== element[3];
+
+        out <== xor[2].out;
 }
 
 template XTimes2(){
