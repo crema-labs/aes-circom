@@ -17,40 +17,79 @@ template MIXCOLUMNS(){
 }
 
 template S0(){
-        signal input in[4];
-        signal output out;
-        signal num2bits[4];
-        signal xor[3];
-        signal element[4];
+    signal input in[4];
+    signal output out;
+    component num2bits[4];
+    component xor[3];
 
-        for (var i = 0; i < 4; i++) {
-            num2bits[i] = Num2Bits(8);
-            num2bits[i].in <== in[i];
-        }
+    for (var i = 0; i < 4; i++) {
+        num2bits[i] = Num2Bits(8);
+        num2bits[i].in <== in[i];
+    }
 
-        element[0] = XTimes2();
-        element[0].in <== num2bits[0].out;
+    component mul = XTimes(2);
+    mul.in <== num2bits[0].out;
 
-        element[1] = XTimes(3);
-        element[1].in <== num2bits[1].out;
+    component mul2 = XTimes(3);
+    mul2.in <== num2bits[1].out;
 
-        element[2] =  num2bits[2].out;
-        element[3] =  num2bits[3].out;
+    xor[0] = XorByte();
+    xor[0].a <== mul.out;
+    xor[0].b <== mul2.out;
 
-        // XOR
-        xor[0] = XorByte();
-        xor[0].a <== element[0].out;
-        xor[0].b <== element[1].out;
+    xor[1] = XorByte();
+    xor[1].a <== xor[0].out;
+    xor[1].b <== num2bits[2].out;
 
-        xor[1] = XorByte();
-        xor[1].a <== xor[0].out;
-        xor[1].b <== element[2];
+    xor[2] = XorByte();
+    xor[2].a <== xor[1].out;
+    xor[2].b <== num2bits[3].out;
 
-        xor[2] = XorByte();
-        xor[2].a <== xor[1].out;
-        xor[2].b <== element[3];
+    component b2n = Bits2Num(8);
+    for (var i = 0; i < 8; i++) {
+        b2n.in[i] <== xor[2].out[i];
+    }
 
-        out <== xor[2].out;
+    out <== b2n.out;
+}
+
+
+template S1(){
+    signal input in[4];
+    signal output out;
+    component num2bits[4];
+    component xor[3];
+
+    for (var i = 0; i < 4; i++) {
+        num2bits[i] = Num2Bits(8);
+        num2bits[i].in <== in[i];
+    }
+
+
+    component mul = XTimes(2);
+    mul.in <== num2bits[1].out;
+
+    component mul2 = XTimes(3);
+    mul2.in <== num2bits[2].out;
+
+    xor[0] = XorByte();
+    xor[0].a <== num2bits[0].out;
+    xor[0].b <== mul.out;
+
+    xor[1] = XorByte();
+    xor[1].a <== xor[0].out;
+    xor[1].b <== mul2.out;
+
+    xor[2] = XorByte();
+    xor[2].a <== xor[1].out;
+    xor[2].b <== num2bits[3].out;
+
+    component b2n = Bits2Num(8);
+    for (var i = 0; i < 8; i++) {
+        b2n.in[i] <== xor[2].out[i];
+    }
+
+    out <== b2n.out;
 }
 
 template S2() { 
