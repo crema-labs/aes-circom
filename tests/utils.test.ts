@@ -233,12 +233,12 @@ describe("MixColumns", () => {
     await circuit.expectPass({ in: [0xd4, 0xbf, 0x5d, 0x30] }, { out: 0xe5 });
   });
 
-  it("should compute correctly", async () => {
+  it("s4 should compute correctly", async () => {
     let circuit: WitnessTester<["state"], ["out"]>;
     circuit = await circomkit.WitnessTester(`MixColumns`, {
       file: "cipher",
       template: "MixColumns",
-      params: [4],
+      params: [],
     });
     console.log("@MixColumns #constraints:", await circuit.getConstraintCount());
     const state = [
@@ -265,7 +265,6 @@ describe("AddRoundKey", () => {
     circuit = await circomkit.WitnessTester(`AddRoundKey`, {
       file: "cipher",
       template: "AddRoundKey",
-      params: [4],
     });
     console.log("@AddRoundKey #constraints:", await circuit.getConstraintCount());
 
@@ -298,7 +297,6 @@ describe("SubBlock", () => {
     circuit = await circomkit.WitnessTester(`SubBlock`, {
       file: "cipher",
       template: "SubBlock",
-      params: [4],
     });
     console.log("@SubBlock #constraints:", await circuit.getConstraintCount());
 
@@ -350,62 +348,6 @@ describe("ShiftRows", () => {
           [191, 180, 65, 39],
           [93, 82, 17, 152],
           [48, 174, 241, 229],
-        ],
-      }
-    );
-  });
-
-  it("should perform ShiftRows when nk = 6", async () => {
-    circuit = await circomkit.WitnessTester(`ShiftRows`, {
-      file: "cipher",
-      template: "ShiftRows",
-      params: [6],
-    });
-    console.log("@ShiftRows #constraints:", await circuit.getConstraintCount());
-
-    await circuit.expectPass(
-      {
-        state: [
-          [0, 1, 2, 3, 4, 5],
-          [6, 7, 8, 9, 10, 11],
-          [12, 13, 14, 15, 16, 17],
-          [18, 19, 20, 21, 22, 23],
-        ],
-      },
-      {
-        newState: [
-          [0, 1, 2, 3, 4, 5],
-          [7, 8, 9, 10, 11, 6],
-          [14, 15, 16, 17, 12, 13],
-          [21, 22, 23, 18, 19, 20],
-        ],
-      }
-    );
-  });
-
-  it("should perform ShiftRows when nk = 8", async () => {
-    circuit = await circomkit.WitnessTester(`ShiftRows`, {
-      file: "cipher",
-      template: "ShiftRows",
-      params: [8],
-    });
-    console.log("@ShiftRows #constraints:", await circuit.getConstraintCount());
-
-    await circuit.expectPass(
-      {
-        state: [
-          [0, 1, 2, 3, 4, 5, 6, 7],
-          [8, 9, 10, 11, 12, 13, 14, 15],
-          [16, 17, 18, 19, 20, 21, 22, 23],
-          [24, 25, 26, 27, 28, 29, 30, 31],
-        ],
-      },
-      {
-        newState: [
-          [0, 1, 2, 3, 4, 5, 6, 7],
-          [9, 10, 11, 12, 13, 14, 15, 8],
-          [19, 20, 21, 22, 23, 16, 17, 18],
-          [28, 29, 30, 31, 24, 25, 26, 27],
         ],
       }
     );

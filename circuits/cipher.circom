@@ -5,27 +5,27 @@ include "../node_modules/circomlib/circuits/comparators.circom";
 include "../node_modules/circomlib/circuits/bitify.circom";
 include "../node_modules/circomlib/circuits/gates.circom";
 
-template AddRoundKey(nk){
-    signal input state[nk][4];
-    signal input roundKey[nk*4];
-    signal output newState[nk][4];
+template AddRoundKey(){
+        signal input state[4][4];
+        signal input roundKey[4][4];
+        signal output newState[4][4];
 
-    component xorbyte[nk][4];
+        component xorbyte[4][4];
 
-    for (var i = 0; i < nk; i++) {
+    for (var i = 0; i < 4; i++) {
         for (var j = 0; j < 4; j++) {
             xorbyte[i][j] = XorByte();
             xorbyte[i][j].a <== state[i][j];
-            xorbyte[i][j].b <== roundKey[4*i+j];
+            xorbyte[i][j].b <== roundKey[i][j];
             newState[i][j] <== xorbyte[i][j].out;
         }
     }
 }
 
-template SubBlock(nk){
-        signal input state[nk][4];
-        signal output newState[nk][4];
-        component sbox[nk];
+template SubBlock(){
+        signal input state[4][4];
+        signal output newState[4][4];
+        component sbox[4];
 
         for (var i = 0; i < 4; i++) {
                 sbox[i] = SubstituteWord();
@@ -35,8 +35,8 @@ template SubBlock(nk){
 }
 
 template ShiftRows(nk){
-    signal input state[4][nk];
-    signal output newState[4][nk];
+    signal input state[4][4];
+    signal output newState[4][4];
     var shiftRows[3][4] = [
         [0, 1, 2, 3], 
         [0, 1, 2, 3],
@@ -52,16 +52,16 @@ template ShiftRows(nk){
     }
 }
 
-template MixColumns(nk){
-    signal input state[4][nk];
-    signal output out[4][nk];
+template MixColumns(){
+    signal input state[4][4];
+    signal output out[4][4];
 
-    component s0[nk];
-    component s1[nk];
-    component s2[nk];
-    component s3[nk];
+    component s0[4];
+    component s1[4];
+    component s2[4];
+    component s3[4];
 
-    for (var i = 0; i < nk; i++) {
+    for (var i = 0; i < 4; i++) {
         s0[i] = S0();
         s1[i] = S1();
         s2[i] = S2();
@@ -93,7 +93,7 @@ template S0(){
         num2bits[i].in <== in[i];
     }
 
-    component mul = XTimes(2);
+    component mul = XTimes2();
     mul.in <== num2bits[0].out;
 
     component mul2 = XTimes(3);
@@ -130,7 +130,7 @@ template S1(){
         num2bits[i].in <== in[i];
     }
 
-    component mul = XTimes(2);
+    component mul = XTimes2();
     mul.in <== num2bits[1].out;
 
     component mul2 = XTimes(3);
@@ -336,66 +336,72 @@ template MulByte(){
     }
 }
        
-// template Cipher(nk){
-//         assert(nk == 4 || nk == 6 || nk == 8 );
-//         signal input block[nk][4];
-//         signal input cipher[nk][nk];
+template Cipher(nk){
+        assert(nk == 4 || nk == 6 || nk == 8 );
+        signal input block[4][4];
+        signal output cipher[4][4];
+        signal input key[nk * 4];
 
-//         var nr = Rounds(nk);
-
-//         signal input key[nk * 4];
-
-//         component keyExpansion = KeyExpansion(nk);
-//         keyExpanded.key <== key;
-
-//         component addRoundKey[nr+1];
-//         component subBytes[nr];
-
-//         signal interBlock[nr][nk][4];
+        var nr = Rounds(nk);
 
 
-//         addRoundKey[0] = AddRoundKey(nk);
-//         addRoundKey[0].state <== block;
-//         for (var i = 0; i < nk; i++) {
-//                 for (var j = 0; j < 4; j++) {
-//                         addRoundKey[0].roundKey[4*i+j] <== keyExpanded.keyExpanded[i][j];
-//                 }
-//         }
-//         interBlock[0] <== addRoundKey[0].out;
-//         for (var i = 1; i < nr; i++) {
-//                 subBytes[i-1] = SubBlock(nk);
-//                 subBytes[i-1].state <== interBlock[i-1];
+        component keyExpansion = KeyExpansion(nk,nr);
+        keyExpansion.key <== key;
 
-//                 shiftRows[i-1] = ShiftRows(nk);
-//                 shiftRows[i-1].state <== subBytes[i-1].newState;
+        component addRoundKey[nr+1]; 
+        component subBytes[nr];
+        component shiftRows[nr];
+        component mixColumns[nr-1];
 
-//                 mixColumns[i-1] = MixColumns(nk);
-//                 mixColumns[i-1].state <== shiftRows[i-1].newState;
+        signal interBlock[nr][4][4];
 
-//                 addRoundKey[i] = AddRoundKey(nk);
-//                 addRoundKey[i].state <== mixColumns[i-1].newState;
-//                 for (var j = 0; j < nk; j++) {
-//                         for (var k = 0; k < 4; k++) {
-//                                 addRoundKey[i].roundKey[4*j+k] <== keyExpanded.keyExpanded[4*i+j][k];
-//                         }
-//                 }
+        addRoundKey[0] = AddRoundKey();
+        addRoundKey[0].state <== block;
+        for (var i = 0; i < 4; i++) {
+                addRoundKey[0].roundKey[i] <== keyExpansion.keyExpanded[i];
+        }
 
-//                 interBlock[i] <== addRoundKey[i].out;
-//         }
+        interBlock[0] <== addRoundKey[0].newState;
+        for (var i = 1; i < nr; i++) {
+                subBytes[i-1] = SubBlock();
+                subBytes[i-1].state <== interBlock[i-1];
 
-//         subBytes[nr-1] = SubBlock(nk);
-//         subBytes[nr-1].state <== interBlock[nr-1];
+                shiftRows[i-1] = ShiftRows(nk);
+                shiftRows[i-1].state <== subBytes[i-1].newState;
 
-//         shiftRows[nr-1] = ShiftRows(nk);
-//         shiftRows[nr-1].state <== subBytes[nr-1].newState;
+                mixColumns[i-1] = MixColumns();
+                mixColumns[i-1].state <== shiftRows[i-1].newState;
 
-//         addRoundKey[nr] = AddRoundKey(nk);
-//         addRoundKey[nr].state <== shiftRows[nr-1].newState;
-//         for (var i = 0; i < nk; i++) {
-//                 for (var j = 0; j < 4; j++) {
-//                         addRoundKey[nr].roundKey[4*i+j] <== keyExpanded.keyExpanded[4*nr+i][j];
-//                 }
-//         }
+                addRoundKey[i] = AddRoundKey();
+                addRoundKey[i].state <== mixColumns[i-1].out;
+                 for (var j = 0; j < 4; j++) {
+                        addRoundKey[i].roundKey[j] <== keyExpansion.keyExpanded[j + (i * 4)];
+                }
 
-//         cipher <== addRoundKey[nr].out;
-// }
+                interBlock[i] <== addRoundKey[i].newState;
+        }
+
+        subBytes[nr-1] = SubBlock();
+        subBytes[nr-1].state <== interBlock[nr-1];
+
+        shiftRows[nr-1] = ShiftRows(nk);
+        shiftRows[nr-1].state <== subBytes[nr-1].newState;
+
+        addRoundKey[nr] = AddRoundKey();
+        addRoundKey[nr].state <== shiftRows[nr-1].newState;
+        for (var i = 0; i < 4; i++) {
+                addRoundKey[nr].roundKey[i] <== keyExpansion.keyExpanded[i + (nr * 4)];
+        }
+
+        cipher <== addRoundKey[nr].newState;
+}
+
+function Rounds (nk) {
+    if (nk == 4) {
+       return 10;
+    } else if (nk == 6) {
+        return 12;
+    } else {
+        return 14;
+    }
+}

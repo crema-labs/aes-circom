@@ -6,10 +6,8 @@ include "../node_modules/circomlib/circuits/bitify.circom";
 include "../node_modules/circomlib/circuits/gates.circom";
 
 //nk is the number of keys which can be 4, 6, 8 
-template KeyExpansion(nk) {
-    assert(nk == 4 || nk == 6 || nk == 8 );
-    var nr = Rounds(nk);
-    
+template KeyExpansion(nk,nr) {
+    assert(nk == 4 || nk == 6 || nk == 8 );    
     signal input key[nk * 4];
     
     var totalWords = (4 * (nr + 1));
@@ -185,15 +183,5 @@ template WordSelector() {
 
     for (var i = 0; i < 4; i++) {
         out[i] <== condition * (bytes1[i] - bytes2[i]) + bytes2[i];
-    }
-}
-
-function Rounds (nk) {
-    if (nk == 4) {
-       return 10;
-    } else if (nk == 6) {
-        return 12;
-    } else {
-        return 14;
     }
 }
