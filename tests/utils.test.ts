@@ -261,7 +261,7 @@ describe("MixColumns", () => {
 
 describe("AddRoundKey", () => {
   let circuit: WitnessTester<["state", "roundKey"], ["newState"]>;
-  it("should perform AddRoundKey", async () => {
+  it.only("should perform AddRoundKey", async () => {
     circuit = await circomkit.WitnessTester(`AddRoundKey`, {
       file: "cipher",
       template: "AddRoundKey",
@@ -277,7 +277,12 @@ describe("AddRoundKey", () => {
           [129, 25, 211, 38],
           [229, 154, 122, 76],
         ],
-        roundKey: [[160, 136, 35, 42, 250, 84, 163, 108, 254, 44, 57, 118, 23, 177, 57, 5]],
+        roundKey: [
+          [160, 250, 254, 23],
+          [136, 84, 44, 177],
+          [35, 163, 57, 57],
+          [42, 108, 118, 5],
+        ],
       },
       {
         newState: [
