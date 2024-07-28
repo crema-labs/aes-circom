@@ -10,13 +10,14 @@ template AddRoundKey(){
         signal input roundKey[4][4];
         signal output newState[4][4];
 
+
         component xorbyte[4][4];
 
     for (var i = 0; i < 4; i++) {
         for (var j = 0; j < 4; j++) {
             xorbyte[i][j] = XorByte();
             xorbyte[i][j].a <== state[i][j];
-            xorbyte[i][j].b <== roundKey[i][j];
+            xorbyte[i][j].b <== roundKey[j][i];
             newState[i][j] <== xorbyte[i][j].out;
         }
     }
@@ -34,19 +35,14 @@ template SubBlock(){
         }
 }
 
-template ShiftRows(nk){
+template ShiftRows(){
     signal input state[4][4];
     signal output newState[4][4];
-    var shiftRows[3][4] = [
-        [0, 1, 2, 3], 
-        [0, 1, 2, 3],
-        [0, 1, 3, 4]
-    ];
 
     component shiftWord[4];
 
     for (var i = 0; i < 4; i++) {
-        shiftWord[i] = Rotate(shiftRows[(nk \ 2) - 2][i], nk);
+        shiftWord[i] = Rotate(i, 4);
         shiftWord[i].bytes <== state[i];
         newState[i] <== shiftWord[i].rotated;
     }
@@ -366,7 +362,7 @@ template Cipher(nk){
                 subBytes[i-1] = SubBlock();
                 subBytes[i-1].state <== interBlock[i-1];
 
-                shiftRows[i-1] = ShiftRows(nk);
+                shiftRows[i-1] = ShiftRows();
                 shiftRows[i-1].state <== subBytes[i-1].newState;
 
                 mixColumns[i-1] = MixColumns();
@@ -384,7 +380,7 @@ template Cipher(nk){
         subBytes[nr-1] = SubBlock();
         subBytes[nr-1].state <== interBlock[nr-1];
 
-        shiftRows[nr-1] = ShiftRows(nk);
+        shiftRows[nr-1] = ShiftRows();
         shiftRows[nr-1].state <== subBytes[nr-1].newState;
 
         addRoundKey[nr] = AddRoundKey();

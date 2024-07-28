@@ -2,7 +2,7 @@ import { WitnessTester } from "circomkit";
 import { circomkit } from "./common";
 
 // todo: should debug cipher
-describe("Cipher", () => {
+describe.only("Cipher", () => {
   let circuit: WitnessTester<["block", "key"], ["cipher"]>;
   it("should perform Cipher", async () => {
     circuit = await circomkit.WitnessTester(`Cipher`, {

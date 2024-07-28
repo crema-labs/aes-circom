@@ -328,7 +328,7 @@ describe("ShiftRows", () => {
     circuit = await circomkit.WitnessTester(`ShiftRows`, {
       file: "cipher",
       template: "ShiftRows",
-      params: [4],
+      params: [],
     });
     console.log("@ShiftRows #constraints:", await circuit.getConstraintCount());
 
