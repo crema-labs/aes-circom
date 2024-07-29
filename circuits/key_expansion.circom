@@ -1,11 +1,45 @@
-pragma circom 2.0.0;
+pragma circom 2.1.8;
 
 include "sbox128.circom";
-include "../node_modules/circomlib/circuits/comparators.circom";
-include "../node_modules/circomlib/circuits/bitify.circom";
-include "../node_modules/circomlib/circuits/gates.circom";
+include "utils.circom";
 
-//nk is the number of keys which can be 4, 6, 8 
+// Key Expansion Process
+//
+// Original Key (Nk words)
+// ┌───┬───┬───┬───┐
+// │W0 │W1 │W2 │W3 │  (for AES-128, Nk=4)
+// └─┬─┴─┬─┴─┬─┴─┬─┘
+//   │   │   │   │
+//   ▼   ▼   ▼   ▼
+// ┌───────────────────────────────────────────────────────┐
+// │                 Key Expansion Process                 │
+// │                                                       │
+// │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐      │
+// │  │RotWord  │ │SubWord  │ │  XOR    │ │  XOR    │      │
+// │  │         │ │         │ │ Rcon(i) │ │ W[i-Nk] │      │
+// │  └────┬────┘ └────┬────┘ └────┬────┘ └────┬────┘      │
+// │       │           │           │           │           │
+// │       └───────────┴───────────┴───────────┘           │
+// │                       │                               │
+// │                       ▼                               │
+// │            ┌─────────────────────┐                    │
+// │            │  New Expanded Key   │                    │
+// │            │       Word          │                    │
+// │            └─────────────────────┘                    │
+// │                       │                               │
+// └───────────────────────┼───────────────────────────────┘
+//                         │
+//                         ▼
+//               Expanded Key Words
+//        ┌───┬───┬───┬───┬───┬───┬───┬───┐
+//        │W4 │W5 │W6 │W7 │W8 │W9 │...│W43│  (for AES-128, 44 words total)
+//        └───┴───┴───┴───┴───┴───┴───┴───┘
+
+
+// @param nk: number of keys which can be 4, 6, 8
+// @param nr: number of rounds which can be 10, 12, 14 for AES 128, 192, 256
+// @inputs key: array of nk*4 bytes representing the key
+// @outputs keyExpanded: array of (nr+1)*4 words i.e for AES 128, 192, 256 it will be 44, 52, 60 words
 template KeyExpansion(nk,nr) {
     assert(nk == 4 || nk == 6 || nk == 8 );    
     signal input key[nk * 4];
@@ -43,7 +77,8 @@ template KeyExpansion(nk,nr) {
     }
 }
 
-//nk, output
+// @param nk: number of keys which can be 4, 6, 8
+// @param o: number of output words which can be 4 or nk
 template NextRound(nk, o){
     signal input key[nk][4]; 
     signal input round;
@@ -86,102 +121,3 @@ template NextRound(nk, o){
 }
 
 
-template BytesToWords(n) {
-    assert(n % 4 == 0);
-    signal input bytes[n];
-    signal output words[n \ 4][n];
-
-    for (var i = 0; i < n \ 4; i++) {
-        for(var j = 0; j < 4; j++) {
-            words[i][j] <== bytes[i * 4 + j];
-        }
-    }
-}
-
-template Rotate(rotation, length) {
-    assert(rotation < length);
-    signal input bytes[length];
-    signal output rotated[length];
-
-    for(var i = 0; i < length - rotation; i++) {
-        rotated[i] <== bytes[i + rotation];
-    }
-
-    for(var i = length - rotation; i < length; i++) {
-        rotated[i] <== bytes[i - length + rotation];
-    }
-}
-
-template SubstituteWord() {
-    signal input bytes[4];
-    signal output substituted[4];
-
-    component sbox[4];
-
-    for(var i = 0; i < 4; i++) {
-        sbox[i] = Sbox128();
-        sbox[i].in <== bytes[i];
-        substituted[i] <== sbox[i].out;
-    }
-}
-
-template RCon() {
-    signal input round;
-    signal output out[4];
-
-    assert(round > 0 && round <= 10);
-
-    var rcon[10][4] = [
-        [0x01, 0x00, 0x00, 0x00],
-        [0x02, 0x00, 0x00, 0x00],
-        [0x04, 0x00, 0x00, 0x00],
-        [0x08, 0x00, 0x00, 0x00],
-        [0x10, 0x00, 0x00, 0x00],
-        [0x20, 0x00, 0x00, 0x00],
-        [0x40, 0x00, 0x00, 0x00],
-        [0x80, 0x00, 0x00, 0x00],
-        [0x1b, 0x00, 0x00, 0x00],
-        [0x36, 0x00, 0x00, 0x00]
-    ];
-
-    out <-- rcon[round-1];
-}
-
-template XorWord() {
-    signal input bytes1[4];
-    signal input bytes2[4];
-    
-    component n2b[4 * 2];
-    component b2n[4];
-    component xor[4][8];
-
-    signal output out[4];
-
-    for(var i = 0; i < 4; i++) {
-        n2b[2 * i] = Num2Bits(8);
-        n2b[2 * i + 1] = Num2Bits(8);
-        n2b[2 * i].in <== bytes1[i];
-        n2b[2 * i + 1].in <== bytes2[i];
-        b2n[i] = Bits2Num(8);
-
-        for (var j = 0; j < 8; j++) {
-            xor[i][j] = XOR();
-            xor[i][j].a <== n2b[2 * i].out[j];
-            xor[i][j].b <== n2b[2 * i + 1].out[j];
-            b2n[i].in[j] <== xor[i][j].out;
-        }
-
-        out[i] <== b2n[i].out;
-    }
-}
-
-template WordSelector() {
-    signal input condition;
-    signal input bytes1[4];
-    signal input bytes2[4];
-    signal output out[4];
-
-    for (var i = 0; i < 4; i++) {
-        out[i] <== condition * (bytes1[i] - bytes2[i]) + bytes2[i];
-    }
-}
