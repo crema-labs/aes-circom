@@ -19,7 +19,7 @@ Check the [Cipher](./circuits/aes.circom) and [KeyExpansion](./circuits/key_expa
 
 The circuit only support the forward encryption of AES as we believe that the proof of computation for any proprietary use case can be refactored to use the forward encryption instead of the decryption. 
 
-Create an issue if you think that the decryption circuit is necessary.
+ 💡 Create an issue if you think that the decryption circuit is necessary.
 
 ## Circomkit
 
@@ -48,3 +48,13 @@ yarn test
 # test a specific circuit
 yarn test -g <template-name>
 ```
+
+## Roadmap
+
+- [x] AES Forward Encryption Circuit
+- [ ] Add AES-CTR mode (priority for ECIES implementaion)
+- [ ] Add all other modes adhering to [NIST standards](https://nvlpubs.nist.gov/nistpubs/legacy/sp/nistspecialpublication800-38a.pdf)
+
+## Contribution
+
+Feel free to contribute to this repository by creating issues or pull requests. We are open to any suggestions or improvements.
