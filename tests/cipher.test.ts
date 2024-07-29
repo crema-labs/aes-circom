@@ -12,7 +12,6 @@ describe("Cipher", () => {
     });
     console.log("@Cipher #constraints:", await circuit.getConstraintCount());
 
-    // 0x57 . 2 = 0xae
     await circuit.expectPass(
       {
         block: [
