@@ -8,7 +8,7 @@ describe("SBox128", () => {
     before(async () => {
       circuit = await circomkit.WitnessTester(`SubBytes`, {
         file: "sbox128",
-        template: "Sbox128",
+        template: "SBox128",
       });
       console.log("#constraints:", await circuit.getConstraintCount());
     });

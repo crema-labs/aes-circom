@@ -41,7 +41,7 @@ template SubstituteWord() {
     component sbox[4];
 
     for(var i = 0; i < 4; i++) {
-        sbox[i] = Sbox128();
+        sbox[i] = SBox128();
         sbox[i].in <== bytes[i];
         substituted[i] <== sbox[i].out;
     }

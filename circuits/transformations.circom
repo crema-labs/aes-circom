@@ -4,6 +4,8 @@ include "circomlib/circuits/comparators.circom";
 include "circomlib/circuits/bitify.circom";
 include "circomlib/circuits/gates.circom";
 
+// ShiftRows: Performs circular left shift on each row
+// 0, 1, 2, 3 shifts for rows 0, 1, 2, 3 respectively
 template ShiftRows(){
     signal input state[4][4];
     signal output newState[4][4];
@@ -31,6 +33,7 @@ template SubBlock(){
         }
 }
 
+// AddRoundKey: XORs the state with transposed the round key
 template AddRoundKey(){
     signal input state[4][4];
     signal input roundKey[4][4];
@@ -70,6 +73,9 @@ template XTimes2(){
     }
 }
 
+// XTimes: Multiplies by n in GF(2^8)
+// This uses a fast multiplication algorithm that uses the XTimes2 component
+// Number of constaints is always constant
 template XTimes(n){
     signal input in[8];
     signal output out[8];
