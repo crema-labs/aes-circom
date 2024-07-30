@@ -1,8 +1,8 @@
-pragma circom 2.0.0;
+pragma circom 2.1.8;
 
 include "circomlib/circuits/comparators.circom";
 
-template Sbox128() {
+template SBox128() {
     signal input in;
     signal output out;
 

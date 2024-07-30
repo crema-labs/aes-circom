@@ -1,5 +1,5 @@
 {
-  "version": "2.1.2",
-  "proofSystem": "plonk",
+  "version": "2.1.8",
+  "proofSystem": "groth16",
   "curve": "bn128"
 }

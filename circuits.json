@@ -1,7 +1,7 @@
 {
-  "fibonacci_11": {
-    "file": "fibonacci",
-    "template": "Fibonacci",
-    "params": [11]
+  "cipher_4": {
+    "file": "cipher",
+    "template": "Cipher",
+    "params": [4]
   }
 }
