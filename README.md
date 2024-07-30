@@ -4,8 +4,7 @@ This repository contains generic implementation for AES encryption in Circom.
 
 ## AES
 
-AES is a symmetric encryption algorithm that was established by the U.S. National Institute of Standards and Technology (NIST) in 2001. It is a subset of the Rijndael block cipher. AES has a fixed block size of 128 bits and a key size of 128, 192, or 256 bits. The algorithm is based on a design principle known as a substitution-permutation network (SPN).It is a symmetric block cipher that can encrypt (encipher) and decrypt (decipher) information. Encryption converts data to an unintelligible form called ciphertext; decrypting the ciphertext converts the data back into its original form, called plaintext. The symmetric key signifies that the same key is used for both encryption and decryption.
-
+AES is a symmetric encryption algorithm that was established by the U.S. National Institute of Standards and Technology (NIST) in 2001. It is a subset of the Rijndael block cipher. AES has a fixed block size of 128 bits and a key size of 128, 192, or 256 bits. The algorithm is based on a design principle known as a substitution-permutation network (SPN).
 Read more about AES here := [FIPS 197](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.197-upd1.pdf).
 Simple Rust implementation of AES can be found here := [tinyaes](https://docs.rs/crate/tinyaes/latest/source/src/aes_core.rs)
 
@@ -13,7 +12,16 @@ Simple Rust implementation of AES can be found here := [tinyaes](https://docs.rs
 
 The circuits contain components for AES forward encryption. The implementation strictly follows the AES standard mentioned in the FIPS 197 document. The circuit is designed to be generic and can be used for any key size (128, 192, 256 bits) and block size (128 bits).
 
-Check the [Cipher](./circuits/aes.circom) and [KeyExpansion](./circuits/key_expansion.circom) circuits for visual representation of the design.
+Check the [Cipher](https://github.com/crema-labs/aes/blob/main/circuits/cipher.circom) and [KeyExpansion](https://github.com/crema-labs/aes/blob/main/circuits/key_expansion.circom) circuits for visual representation of the design.
+
+### Constraints
+
+The following constraint values were calculated using 
+```sh
+circom -l node_modules ./circuits/main/cipher_4.circom -o build --r1cs --wasm                    
+```
+
+<img width="282" alt="contraints" src="https://github.com/user-attachments/assets/f9f13742-321a-4a1e-9676-f125e2aaf2ee">
 
 ## Design Decisions
 
