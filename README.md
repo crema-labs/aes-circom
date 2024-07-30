@@ -21,6 +21,7 @@ The following constraint values were calculated using
 circom -l node_modules ./circuits/main/cipher_4.circom -o build --r1cs --wasm                    
 ```
 
+<img width="282" alt="contraints" src="https://github.com/user-attachments/assets/f9f13742-321a-4a1e-9676-f125e2aaf2ee">
 
 ## Design Decisions
 
