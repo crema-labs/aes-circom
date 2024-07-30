@@ -13,7 +13,15 @@ Simple Rust implementation of AES can be found here := [tinyaes](https://docs.rs
 
 The circuits contain components for AES forward encryption. The implementation strictly follows the AES standard mentioned in the FIPS 197 document. The circuit is designed to be generic and can be used for any key size (128, 192, 256 bits) and block size (128 bits).
 
-Check the [Cipher](./circuits/aes.circom) and [KeyExpansion](./circuits/key_expansion.circom) circuits for visual representation of the design.
+Check the [Cipher](https://github.com/crema-labs/aes/blob/main/circuits/cipher.circom) and [KeyExpansion](https://github.com/crema-labs/aes/blob/main/circuits/key_expansion.circom) circuits for visual representation of the design.
+
+### Constraints
+
+The following constraint values were calculated using 
+```sh
+circom -l node_modules ./circuits/main/cipher_4.circom -o build --r1cs --wasm                    
+```
+
 
 ## Design Decisions
 
