@@ -4,8 +4,7 @@ This repository contains generic implementation for AES encryption in Circom.
 
 ## AES
 
-AES is a symmetric encryption algorithm that was established by the U.S. National Institute of Standards and Technology (NIST) in 2001. It is a subset of the Rijndael block cipher. AES has a fixed block size of 128 bits and a key size of 128, 192, or 256 bits. The algorithm is based on a design principle known as a substitution-permutation network (SPN).It is a symmetric block cipher that can encrypt (encipher) and decrypt (decipher) information. Encryption converts data to an unintelligible form called ciphertext; decrypting the ciphertext converts the data back into its original form, called plaintext. The symmetric key signifies that the same key is used for both encryption and decryption.
-
+AES is a symmetric encryption algorithm that was established by the U.S. National Institute of Standards and Technology (NIST) in 2001. It is a subset of the Rijndael block cipher. AES has a fixed block size of 128 bits and a key size of 128, 192, or 256 bits. The algorithm is based on a design principle known as a substitution-permutation network (SPN).
 Read more about AES here := [FIPS 197](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.197-upd1.pdf).
 Simple Rust implementation of AES can be found here := [tinyaes](https://docs.rs/crate/tinyaes/latest/source/src/aes_core.rs)
 
