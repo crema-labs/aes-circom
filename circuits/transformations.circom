@@ -3,6 +3,7 @@ pragma circom 2.1.8;
 include "circomlib/circuits/comparators.circom";
 include "circomlib/circuits/bitify.circom";
 include "circomlib/circuits/gates.circom";
+include "utils.circom";
 
 // ShiftRows: Performs circular left shift on each row
 // 0, 1, 2, 3 shifts for rows 0, 1, 2, 3 respectively
