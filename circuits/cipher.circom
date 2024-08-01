@@ -36,8 +36,8 @@ include "mix_columns.circom";
 template Cipher(nk){
         assert(nk == 4 || nk == 6 || nk == 8 );
         signal input block[4][4];
-        signal output cipher[4][4];
         signal input key[nk * 4];
+        signal output cipher[4][4];
 
         var nr = Rounds(nk);
         
