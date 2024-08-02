@@ -26,7 +26,7 @@ template EncryptCTR(l,nk){
         signal cipherBlocks[n][4][4];
         component AddCipher[n];
 
-        for(var i=0;i<n;i++){
+        for(var i = 0 ; i < n; i++){
                 aes[i] = Cipher(nk);
                 ivBlock[3][3] = (ivBlock[3][3] + i)%256;
                 aes[i].key <== key;
@@ -58,7 +58,7 @@ template ToBlocks(l){
 
         var i, j, k;
 
-         for (var idx = 0; idx < l; idx++) {
+        for (var idx = 0; idx < l; idx++) {
                 blocks[i][k][j] <== stream[idx];
                 k = k + 1;
                 if (k == 4){
@@ -77,6 +77,7 @@ template ToBlocks(l){
         }
 }
 
+// convert blocks of 16 bytes to stream of bytes
 template ToStream(n,l){
         signal input blocks[n][4][4];
 
