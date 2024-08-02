@@ -4,7 +4,7 @@ import { circomkit } from "./common";
 // todo: should debug cipher
 describe("Cipher", () => {
   let circuit: WitnessTester<["block", "key"], ["cipher"]>;
-  it("should perform Cipher", async () => {
+  it("should perform Cipher#1", async () => {
     circuit = await circomkit.WitnessTester(`Cipher`, {
       file: "cipher",
       template: "Cipher",
@@ -36,7 +36,7 @@ describe("Cipher", () => {
   // in  : f0f1f2f3f4f5f6f7f8f9fafbfcfdfeff
   // out : ec8cdf7398607cb0f2d21675ea9ea1e4
   // key : 2b7e151628aed2a6abf7158809cf4f3c
-  it("should perform Cipher", async () => {
+  it("should perform Cipher#2", async () => {
     circuit = await circomkit.WitnessTester(`Cipher`, {
       file: "cipher",
       template: "Cipher",
