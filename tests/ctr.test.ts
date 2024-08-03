@@ -34,7 +34,7 @@ describe("ToBlocks", () => {
       template: "ToBlocks",
       params: [15],
     });
-    console.log("@ToBLocks #constraints:", await circuit.getConstraintCount());
+    console.log("@EncryptCTR #constraints:", await circuit.getConstraintCount());
 
     await circuit.expectPass(
       {
