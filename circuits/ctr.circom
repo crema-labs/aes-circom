@@ -14,26 +14,25 @@ template EncryptCTR(l,nk){
                 n = n + 1;
         }
 
-        component toBlocks[2];
-        toBlocks[0] = ToBlocks(l);
-        toBlocks[0].stream <== plainText;
+        component toBlocks = ToBlocks(l);
+        toBlocks.stream <== plainText;
 
         component aes[n];
-        toBlocks[1] = ToBlocks(16);
-        toBlocks[1].stream <== iv;
-        var ivBlock[4][4] = toBlocks[1].blocks[0];
 
         signal cipherBlocks[n][4][4];
         component AddCipher[n];
 
+        component generateCtrBlocks = GenerateCounterBlocks(n);
+        generateCtrBlocks.iv <== iv;
+        signal counterBlocks[n][4][4] <== generateCtrBlocks.counterBlocks;
+
         for(var i = 0 ; i < n; i++){
                 aes[i] = Cipher(nk);
-                ivBlock[3][3] = (ivBlock[3][3] + i)%256;
                 aes[i].key <== key;
-                aes[i].block <-- ivBlock;
+                aes[i].block <== counterBlocks[i];
 
                 AddCipher[i] = AddCipher();
-                AddCipher[i].state <== toBlocks[0].blocks[i];
+                AddCipher[i].state <== toBlocks.blocks[i];
                 AddCipher[i].cipher <== aes[i].cipher;
 
                 cipherBlocks[i] <== AddCipher[i].newState;
@@ -114,4 +113,25 @@ template AddCipher(){
             newState[i][j] <== xorbyte[i][j].out;
         }
     }
+}
+
+// converts iv to counter blocks
+// iv is 16 bytes
+template GenerateCounterBlocks(n){
+        signal input iv[16];
+        signal output counterBlocks[n][4][4];
+
+        var ivr[16] = iv;
+
+        component toBlocks[n];
+
+        for (var i = 0; i < n; i++) {
+                toBlocks[i] = ToBlocks(16);
+                toBlocks[i].stream <-- ivr;
+                counterBlocks[i] <== toBlocks[i].blocks[0];
+                ivr[15] = (ivr[15] + 1)%256;
+                if (ivr[15] == 0){
+                        ivr[14] = (ivr[14] + 1)%256;
+                }
+        }
 }
