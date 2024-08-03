@@ -24,12 +24,11 @@ template EncryptCTR(l,nk){
 
         component generateCtrBlocks = GenerateCounterBlocks(n);
         generateCtrBlocks.iv <== iv;
-        signal counterBlocks[n][4][4] <== generateCtrBlocks.counterBlocks;
 
         for(var i = 0 ; i < n; i++){
                 aes[i] = Cipher(nk);
                 aes[i].key <== key;
-                aes[i].block <== counterBlocks[i];
+                aes[i].block <== generateCtrBlocks.counterBlocks[i];
 
                 AddCipher[i] = AddCipher();
                 AddCipher[i].state <== toBlocks.blocks[i];
