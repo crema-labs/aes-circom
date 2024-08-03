@@ -1,10 +1,10 @@
-pragma circom 2.1.8;
+pragma circom 2.1.9;
 
 include "transformations.circom";
 include "circomlib/circuits/comparators.circom";
 include "circomlib/circuits/bitify.circom";
 include "circomlib/circuits/gates.circom";
-
+include "tbox.circom";
 
 // MixColumns: Applies the equation for each column:
 // [s'0,c]   [2 3 1 1][s0,c]
@@ -49,20 +49,20 @@ template S0(){
     component num2bits[4];
     component xor[3];
 
-    for (var i = 0; i < 4; i++) {
+    for (var i = 2; i < 4; i++) {
         num2bits[i] = Num2Bits(8);
         num2bits[i].in <== in[i];
     }
 
-    component mul = XTimes2();
-    mul.in <== num2bits[0].out;
+    num2bits[0] = Num2Bits(8);
+    num2bits[0].in <-- TBox(0, in[0]);
 
-    component mul2 = XTimes(3);
-    mul2.in <== num2bits[1].out;
+    num2bits[1] = Num2Bits(8);
+    num2bits[1].in <-- TBox(1, in[1]);
 
     xor[0] = XorBits();
-    xor[0].a <== mul.out;
-    xor[0].b <== mul2.out;
+    xor[0].a <== num2bits[0].out;
+    xor[0].b <== num2bits[1].out;
 
     xor[1] = XorBits();
     xor[1].a <== xor[0].out;
@@ -88,24 +88,25 @@ template S1(){
     component num2bits[4];
     component xor[3];
 
-    for (var i = 0; i < 4; i++) {
-        num2bits[i] = Num2Bits(8);
-        num2bits[i].in <== in[i];
-    }
+    num2bits[0] = Num2Bits(8);
+    num2bits[0].in <== in[0];
 
-    component mul = XTimes2();
-    mul.in <== num2bits[1].out;
+    num2bits[1] = Num2Bits(8);
+    num2bits[1].in <-- TBox(0, in[1]);
 
-    component mul2 = XTimes(3);
-    mul2.in <== num2bits[2].out;
+    num2bits[2] = Num2Bits(8);
+    num2bits[2].in <-- TBox(1, in[2]);
+
+    num2bits[3] = Num2Bits(8);
+    num2bits[3].in <== in[3];
 
     xor[0] = XorBits();
     xor[0].a <== num2bits[0].out;
-    xor[0].b <== mul.out;
+    xor[0].b <== num2bits[1].out;
 
     xor[1] = XorBits();
     xor[1].a <== xor[0].out;
-    xor[1].b <== mul2.out;
+    xor[1].b <== num2bits[2].out;
 
     xor[2] = XorBits();
     xor[2].a <== xor[1].out;
@@ -127,28 +128,28 @@ template S2() {
     component num2bits[4];
     component xor[3];
 
-    for (var i = 0; i < 4; i++) {
+    for (var i = 0; i < 2; i++) {
         num2bits[i] = Num2Bits(8);
         num2bits[i].in <== in[i];
     }
+
+    num2bits[2] = Num2Bits(8);
+    num2bits[2].in <-- TBox(0, in[2]);
+
+    num2bits[3] = Num2Bits(8);
+    num2bits[3].in <-- TBox(1, in[3]);
 
     xor[0] = XorBits();
     xor[0].a <== num2bits[0].out;
     xor[0].b <== num2bits[1].out;
 
-    component mul2 = XTimes2();
-    mul2.in <== num2bits[2].out;
-
-    component mul = XTimes(3);
-    mul.in <== num2bits[3].out;
-
     xor[1] = XorBits();
     xor[1].a <== xor[0].out;
-    xor[1].b <== mul2.out;
+    xor[1].b <== num2bits[2].out;
 
     xor[2] = XorBits();
     xor[2].a <== xor[1].out;
-    xor[2].b <== mul.out;
+    xor[2].b <== num2bits[3].out;
 
     component b2n = Bits2Num(8);
     for (var i = 0; i < 8; i++) {
@@ -166,27 +167,27 @@ template S3() {
     component num2bits[4];
     component xor[3];
 
-    for (var i = 0; i < 4; i++) {
+    for (var i = 1; i < 3; i++) {
         num2bits[i] = Num2Bits(8);
         num2bits[i].in <== in[i];
     }
 
-    component mul3 = XTimes(3);
-    mul3.in <== num2bits[0].out;
+    num2bits[0] = Num2Bits(8);
+    num2bits[0].in <-- TBox(1, in[0]);
+
+    num2bits[3] = Num2Bits(8);
+    num2bits[3].in <-- TBox(0, in[3]);
 
     xor[0] = XorBits();
-    xor[0].a <== mul3.out;
+    xor[0].a <== num2bits[0].out;
     xor[0].b <== num2bits[1].out;
 
     xor[1] = XorBits();
     xor[1].a <== xor[0].out;
     xor[1].b <== num2bits[2].out;
 
-    component mul2 = XTimes2();
-    mul2.in <== num2bits[3].out;
-
     xor[2] = XorBits();
-    xor[2].a <== mul2.out;
+    xor[2].a <-- num2bits[3].out;
     xor[2].b <== xor[1].out;
 
     component b2n = Bits2Num(8);

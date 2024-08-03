@@ -1,4 +1,4 @@
-pragma circom 2.1.8;
+pragma circom 2.1.9;
 
 include "cipher.circom";
 include "transformations.circom";
