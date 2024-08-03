@@ -117,6 +117,7 @@ template AddCipher(){
 // converts iv to counter blocks
 // iv is 16 bytes
 template GenerateCounterBlocks(n){
+        assert(n < 0xffffffff);
         signal input iv[16];
         signal output counterBlocks[n][4][4];
 
@@ -131,6 +132,13 @@ template GenerateCounterBlocks(n){
                 ivr[15] = (ivr[15] + 1)%256;
                 if (ivr[15] == 0){
                         ivr[14] = (ivr[14] + 1)%256;
+                        if (ivr[14] == 0){
+                                ivr[13] = (ivr[13] + 1)%256;
+                                if (ivr[13] == 0){
+                                        ivr[12] = (ivr[12] + 1)%256;
+                                }
+                        }
                 }
+
         }
 }
