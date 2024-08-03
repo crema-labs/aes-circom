@@ -1,15 +1,40 @@
 {
-  "description": "AES circom",
+  "name": "@crema-labs/aes-circom",
+  "description": "A generic AES forward cipher implementation",
+  "version": "0.0.2",
+  "main": "index.js",
+  "keywords": [
+    "aes",
+    "cipher",
+    "circom",
+    "circuit",
+    "zk",
+    "zk-snarks"
+  ],
+  "files": [
+    "circuits",
+    "index.js"
+  ],
   "scripts": {
     "start": "npx ts-node ./src/index.ts",
     "test": "npx mocha",
     "compile:test": "npx circomkit compile cipher_4 && npx circomkit prove cipher_4 default && npx circomkit verify cipher_4 default"
   },
   "dependencies": {
-    "circomkit": "^0.0.22",
     "circomlib": "^2.0.5"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/crema-labs/aes-circom.git"
+  },
+  "contributors": [
+    "Ayman Mohammed <aymanshaik1015@gmail.com>",
+    "Vikas Rushi <0xvikas@gmail.com>",
+    "Yashwant Reddy <yashdotreddy@gmailcom>"
+  ],
+  "license": "MIT",
   "devDependencies": {
+    "circomkit": "^0.0.22",
     "@types/mocha": "^10.0.1",
     "@types/node": "^20.3.0",
     "mocha": "^10.2.0",
