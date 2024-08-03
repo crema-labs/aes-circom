@@ -1,4 +1,4 @@
-pragma circom 2.1.8;
+pragma circom 2.1.9;
 
 include "transformations.circom";
 include "circomlib/circuits/bitify.circom";
@@ -6,7 +6,7 @@ include "circomlib/circuits/bitify.circom";
 //tbox[0] =>> multiplication by 2
 //tbox[1] =>> multiplication by 3
 function TBox(index, subbyte) {
-    var tbox[2][16*16] = [
+    var tbox[2][256] = [
         [
             0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60,
             62, 64, 66, 68, 70, 72, 74, 76, 78, 80, 82, 84, 86, 88, 90, 92, 94, 96, 98, 100, 102, 104, 106, 108, 110, 112, 114,
