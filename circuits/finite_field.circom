@@ -2,13 +2,16 @@ pragma circom 2.1.9;
 
 include "circomlib/circuits/bitify.circom";
 
+// Finite field addition, the signal variable plus a compile-time constant
 template FieldAddConst(c) {
     signal input in[8];
+    // control bit, if 0, then do not perform addition
     signal input control;
     signal output out[8];
 
     for (var i=0; i<8; i++) {
         if(c & (1<<i) != 0) {
+            // XOR operation
             out[i] <== in[i] + control - 2 * in[i] * control;
         } else {
             out[i] <== in[i];
@@ -16,6 +19,9 @@ template FieldAddConst(c) {
     }
 }
 
+// Finite field multiplication by 2 operation for AES. This involves left-shifting 'input' by 1 (input << 1), 
+// and then XORing with 0x1B if the most significate bit is 1. This is because the irreducible polynomial 
+// for AES's finite field (GF(2^8)) is x^8 + x^4 + x^3 + x + 1.
 template FieldMul2() {
     signal input in;
     signal output out;
@@ -32,6 +38,8 @@ template FieldMul2() {
     out <== Bits2Num(8)(reduce.out);
 }
 
+// Finite field multiplication by 3 operation for AES. This involves (input << 1) ⊕ input and then XORing 
+// with 0x1B if the most significate bit is 1.
 template FieldMul3() {
     signal input in;
     signal output out;
@@ -47,6 +55,7 @@ template FieldMul3() {
     out <== Bits2Num(8)(reduce.out);
 }
 
+// Determine the parity (odd or even) of an integer that can be accommodated within 'nBits' bits.
 template IsOdd(nBits) {
     signal input in;
     signal output out;
@@ -58,6 +67,7 @@ template IsOdd(nBits) {
     }
 }
 
+// Finite field multiplication. 
 template FieldMul() {
     signal input a;
     signal input b;
@@ -67,6 +77,7 @@ template FieldMul() {
     inBits[0] <== Num2Bits(8)(a);
     inBits[1] <== Num2Bits(8)(b);
 
+    // List of finite field elements obtained by successively doubling, starting from 1.
     var power[15] = [0x1, 0x2, 0x4, 0x8, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36, 0x6c, 0xd8, 0xab, 0x4d, 0x9a];
 
     signal mulMatrix[8][8];
@@ -74,6 +85,7 @@ template FieldMul() {
     for (var i = 0; i < 8; i++) {
         outLinesLc[i] = 0;
     }
+    // Apply elementary multiplication
     for (var i = 0; i < 8; i++) {
         for (var j = 0; j < 8; j++) {
             mulMatrix[i][j] <== inBits[0][i] * inBits[1][j];
@@ -88,12 +100,15 @@ template FieldMul() {
     signal outBits[8];
     for (var i = 0; i < 8; i++) {
         outBitsUnreduced[i] <== outLinesLc[i];
+        // Each element in 'outLinesLc' is incremented by a known constant number of 
+        // elements from 'mulMatrix', less than 31.
         outBits[i] <== IsOdd(6)(outBitsUnreduced[i]);
     }
 
     out <== Bits2Num(8)(outBits);
 }
 
+// Finite Field Inversion. Specially, if the input is 0, the output is also 0.
 template FieldInv() {
     signal input in;
     signal output out;
@@ -115,14 +130,19 @@ template FieldInv() {
                     0xb1, 0x0d, 0xd6, 0xeb, 0xc6, 0x0e, 0xcf, 0xad, 0x08, 0x4e, 0xd7, 0xe3, 0x5d, 0x50, 0x1e, 0xb3,
                     0x5b, 0x23, 0x38, 0x34, 0x68, 0x46, 0x03, 0x8c, 0xdd, 0x9c, 0x7d, 0xa0, 0xcd, 0x1a, 0x41, 0x1c];
 
+    // Obtain an unchecked result from a lookup table
     out <-- inv[in];
+    // Compute the product of the input and output, expected to be 1
     signal checkRes <== FieldMul()(in, out);
+    // For the special case when the input is 0, both input and output should be 0
     signal isZeroIn <== IsZero()(in);
     signal isZeroOut <== IsZero()(out);
     signal checkZero <== isZeroIn * isZeroOut;
+    // Ensure that either the product is 1 or both input and output are 0, satisfying at least one condition
     (1 - checkRes) * (1 - checkZero) === 0;
 }
 
+// AffineTransform required by the S-box computation.
 template AffineTransform() {
     signal input inBits[8];
     signal output outBits[8];
