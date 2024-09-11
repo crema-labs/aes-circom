@@ -2,12 +2,32 @@ pragma circom 2.1.9;
 
 include "cipher.circom";
 include "transformations.circom";
+include "circomlib/circuits/comparators.circom";
+include "circomlib/circuits/bitify.circom";
 
 template EncryptCTR(l,nk){
         signal input plainText[l];
         signal input iv[16];
         signal input key[nk * 4];
         signal output cipher[l];
+
+        component checkPlainText[l];
+        for (var i = 0; i < l; i++) {
+                checkPlainText[i] = Num2Bits(8);
+                checkPlainText[i].in <== plainText[i];
+        }
+
+        component checkIv[16];
+        for (var i = 0; i < 16; i++) {
+                checkIv[i] = Num2Bits(8);
+                checkIv[i].in <== iv[i];
+        }
+
+        component checkKey[nk * 4];
+        for (var i = 0; i < nk * 4; i++) {
+                checkKey[i] = Num2Bits(8);
+                checkKey[i].in <== key[i];
+        }
 
         var n = l\16;
         if(l%16 > 0){
@@ -114,31 +134,52 @@ template AddCipher(){
     }
 }
 
+template ByteInc() {
+        signal input in;
+        signal input control;
+        signal output out;
+        signal output carry;
+
+        signal added;
+        added <== in + control;
+
+        signal addedDiff;
+        addedDiff <== added - 256;
+        carry <== IsZero()(addedDiff);
+
+        out <== added - carry * 256;
+}
+
 // converts iv to counter blocks
 // iv is 16 bytes
 template GenerateCounterBlocks(n){
         assert(n < 0xffffffff);
         signal input iv[16];
+        signal blockNonce[n][16];
         signal output counterBlocks[n][4][4];
-
-        var ivr[16] = iv;
-
         component toBlocks[n];
+        
+        component ivByteInc[n-1][16];
 
-        for (var i = 0; i < n; i++) {
-                toBlocks[i] = ToBlocks(16);
-                toBlocks[i].stream <-- ivr;
-                counterBlocks[i] <== toBlocks[i].blocks[0];
-                ivr[15] = (ivr[15] + 1)%256;
-                if (ivr[15] == 0){
-                        ivr[14] = (ivr[14] + 1)%256;
-                        if (ivr[14] == 0){
-                                ivr[13] = (ivr[13] + 1)%256;
-                                if (ivr[13] == 0){
-                                        ivr[12] = (ivr[12] + 1)%256;
-                                }
+
+        toBlocks[0] = ToBlocks(16);
+        toBlocks[0].stream <== iv;
+        counterBlocks[0] <== toBlocks[0].blocks[0];
+
+        for (var i = 1; i < n; i++) {
+                for (var j = 15; j >= 0; j--) {
+                        ivByteInc[i-1][j] = ByteInc();
+                        ivByteInc[i-1][j].in <== toBlocks[i-1].stream[j];
+                        if (j==15) {
+                                ivByteInc[i-1][j].control <== 1;
+                        } else {
+                                ivByteInc[i-1][j].control <== ivByteInc[i-1][j+1].carry;
                         }
-                }
+                        blockNonce[i][j] <== ivByteInc[i-1][j].out;
+                }        
 
+                toBlocks[i] = ToBlocks(16);
+                toBlocks[i].stream <== blockNonce[i];
+                counterBlocks[i] <== toBlocks[i].blocks[0];
         }
 }

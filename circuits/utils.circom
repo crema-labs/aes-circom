@@ -48,8 +48,7 @@ template SubstituteWord() {
 }
 
 // Outputs a round constant for a given round number
-template RCon() {
-    signal input round;
+template RCon(round) {
     signal output out[4];
 
     assert(round > 0 && round <= 10);
@@ -67,7 +66,7 @@ template RCon() {
         [0x36, 0x00, 0x00, 0x00]
     ];
 
-    out <-- rcon[round-1];
+    out <== rcon[round-1];
 }
 
 
