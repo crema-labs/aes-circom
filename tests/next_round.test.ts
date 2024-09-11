@@ -2,14 +2,14 @@ import { WitnessTester } from "circomkit";
 import { circomkit } from "./common";
 
 describe("NextRound", () => {
-  let circuit: WitnessTester<["key", "round"], ["nextKey"]>;
+  let circuit: WitnessTester<["key"], ["nextKey"]>;
 
   describe("NextRound", () => {
     before(async () => {
-      circuit = await circomkit.WitnessTester(`NextRound_${4}_${4}`, {
+      circuit = await circomkit.WitnessTester(`NextRound_${4}_${4}_${1}`, {
         file: "key_expansion",
         template: "NextRound",
-        params: [4, 4],
+        params: [4, 4, 1],
       });
       console.log("#constraints:", await circuit.getConstraintCount());
     });
@@ -29,7 +29,7 @@ describe("NextRound", () => {
         [0x2a, 0x6c, 0x76, 0x05],
       ];
 
-      await circuit.expectPass({ key, round: 1 }, { nextKey: expectedNextKey });
+      await circuit.expectPass({ key }, { nextKey: expectedNextKey });
     });
   });
 
